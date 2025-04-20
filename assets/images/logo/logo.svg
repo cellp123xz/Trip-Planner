@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Yellow circle background -->
+  <circle cx="100" cy="100" r="90" fill="#ffc107"/>
+  
+  <!-- Mountains -->
+  <path d="M60,140 L100,80 L140,140 Z" fill="black"/>
+  <path d="M90,140 L120,100 L150,140 Z" fill="black"/>
+  
+  <!-- Path/Road -->
+  <path d="M70,140 C90,120 110,140 130,120" stroke="black" stroke-width="4" fill="none"/>
+  
+  <!-- Trees -->
+  <path d="M140,130 L145,110 L150,130 Z" fill="black"/>
+  <path d="M155,130 L160,115 L165,130 Z" fill="black"/>
+  
+  <!-- Traveler silhouette -->
+  <g transform="translate(70, 120) scale(0.8)">
+    <!-- Body -->
+    <circle cx="0" cy="-15" r="5" fill="black"/>
+    <rect x="-3" y="-10" width="6" height="15" fill="black"/>
+    <!-- Legs -->
+    <path d="M-3,5 L-8,15 M3,5 L8,15" stroke="black" stroke-width="3"/>
+    <!-- Arm with briefcase -->
+    <path d="M3,0 L12,5" stroke="black" stroke-width="3"/>
+    <rect x="12" y="2" width="8" height="6" fill="black"/>
+  </g>
+  
+  <!-- Airplane -->
+  <g transform="translate(130, 60) rotate(-10)">
+    <path d="M0,0 L25,0 L20,5 L0,5 Z" fill="black"/>
+    <path d="M5,-5 L15,-5 L15,0 L5,0 Z" fill="black"/>
+    <path d="M10,5 L15,5 L20,10 L10,10 Z" fill="black"/>
+  </g>
+</svg>

@@ -1,0 +1,86 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "name": "Demo User",
+            "email": "demo@example.com",
+            "password": "$2y$10$sVSv7Y2vg9L2Ske09i4rO.iL8ln4\/NSXd9B6x0t.jWPkzxQipegeK",
+            "verification_code": "3d70dc20fb0085734d8c12371667de88",
+            "is_verified": true,
+            "email_verified": 1,
+            "created_at": "2025-04-20 09:15:15"
+        },
+        {
+            "id": 2,
+            "name": "jenzen",
+            "email": "honoraablegamer143@gmail.com",
+            "password": "$2y$12$ZW6AA\/lammlaxPFQzAjR1uawQ.d6O58SXVQ1n73ddvz2wIghZIwY.",
+            "verification_code": "6f6643a1dc70601170951ccc28e355b6",
+            "reset_token": "c16d35ef7f74ae11bb2fa84430bfbffbacbc2779764da732e9e76a0f7fc33bb6",
+            "reset_token_expires": "2025-04-20 10:51:26",
+            "is_verified": true,
+            "email_verified": 1,
+            "created_at": "2025-04-20 09:36:41",
+            "last_login": "2025-04-20 15:55:13",
+            "reset_expiry": 1745162312
+        }
+    ],
+    "trips": [
+        {
+            "id": 1,
+            "user_id": 1,
+            "destination": "Paris, France",
+            "start_date": "2025-06-15",
+            "end_date": "2025-06-22",
+            "activities": "Visit Eiffel Tower, Louvre Museum",
+            "notes": "Remember to pack light!",
+            "status": "planned",
+            "created_at": "2025-04-20 09:15:15",
+            "updated_at": "2025-04-20 09:15:15"
+        },
+        {
+            "id": 2,
+            "user_id": 1,
+            "destination": "Rome, Italy",
+            "start_date": "2025-08-10",
+            "end_date": "2025-08-17",
+            "activities": "Colosseum, Vatican City",
+            "notes": "Book tickets in advance for Vatican",
+            "status": "planned",
+            "created_at": "2025-04-20 09:15:15",
+            "updated_at": "2025-04-20 09:15:15"
+        }
+    ],
+    "hotels": [
+        {
+            "id": 1,
+            "name": "Grand Luxury Hotel",
+            "address": "123 Champs-\u00c9lys\u00e9es, Paris, France",
+            "rating": 4.7,
+            "price_range": "$$$"
+        },
+        {
+            "id": 2,
+            "name": "Roman Resort Suites",
+            "address": "45 Via del Corso, Rome, Italy",
+            "rating": 4.5,
+            "price_range": "$$"
+        }
+    ],
+    "tourist_sites": [
+        {
+            "id": 1,
+            "name": "Eiffel Tower",
+            "description": "Iconic Parisian landmark",
+            "address": "Champ de Mars, Paris, France",
+            "category": "Monument"
+        },
+        {
+            "id": 2,
+            "name": "Colosseum",
+            "description": "Ancient Roman amphitheatre",
+            "address": "Piazza del Colosseo, Rome, Italy",
+            "category": "Historical Site"
+        }
+    ]
+}

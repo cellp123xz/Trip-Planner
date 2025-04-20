@@ -1,0 +1,33 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Environment files
+.env
+env.php
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+
+# PHP session files
+/sessions/
+sess_*
+
+# Composer
+/vendor/
+composer.phar
+
+# User uploaded content (if applicable)
+/uploads/
+
+# Cache files
+*.cache
