@@ -7,8 +7,6 @@ require_once '../includes/csrf_protection.php';
 require_once '../includes/password_policy.php';
 require_once '../includes/security_functions.php';
 
-
-
 setSecurityHeaders();
 
 $errors = [];
@@ -16,11 +14,9 @@ $passwordErrors = [];
 $success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
     if (!csrfCheck()) {
         $errors[] = "Security token validation failed. Please try again.";
     } else {
-        
         $name = sanitizeString(trim($_POST['name'] ?? ''));
         $email = sanitizeEmail(trim($_POST['email'] ?? ''));
         $password = $_POST['password'] ?? '';
@@ -28,21 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $security_question = sanitizeString(trim($_POST['security_question'] ?? ''));
         $security_answer = trim($_POST['security_answer'] ?? '');
 
-        
         if (empty($name)) {
             $errors[] = "Name is required";
         }
         
         if (empty($email)) {
             $errors[] = "Email is required";
-        } elseif (!$email) { // sanitizeEmail returns false if invalid
+        } elseif (!$email) {
             $errors[] = "Invalid email format";
         }
         
         if (empty($password)) {
             $errors[] = "Password is required";
         } else {
-            // Validate password strength
             $passwordValidation = validatePasswordStrength($password);
             if (!$passwordValidation['success']) {
                 $errors[] = "Password does not meet security requirements";

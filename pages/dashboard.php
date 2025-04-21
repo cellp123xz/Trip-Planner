@@ -3,19 +3,15 @@ require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 require_once '../includes/alerts.php';
 
-// Require login to access dashboard
 requireLogin();
 
-// Get user data
 $user = getUserById($_SESSION['user_id']);
 if (!$user) {
-    // If user not found, redirect to login
     logoutUser();
     header("Location: login.php");
     exit;
 }
 
-// Convert 'alert' format to 'sweet_alert' format for compatibility
 if (isset($_SESSION['alert'])) {
     $_SESSION['sweet_alert'] = [
         'title' => $_SESSION['alert']['title'] ?? '',
@@ -29,7 +25,7 @@ if (isset($_SESSION['alert'])) {
 include '../includes/header.php';
 ?>
 
-<!-- Custom Dashboard CSS -->
+
 <style>
     .dashboard-hero {
         background: linear-gradient(135deg, #0d6efd 0%, #0099f7 100%);
@@ -244,7 +240,7 @@ include '../includes/header.php';
                             <i class="fas fa-plus-circle"></i>Create New Trip
                         </a>
                         <a href="browse_hotels.php" class="btn btn-outline-primary action-btn">
-                            <i class="fas fa-search"></i>Browse Hotels
+                            <i class="fas fa-hotel"></i>Browse Hotels
                         </a>
                         <a href="explore_sites.php" class="btn btn-outline-primary action-btn">
                             <i class="fas fa-map-marked-alt"></i>Explore Sites

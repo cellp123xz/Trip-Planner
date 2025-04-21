@@ -2,7 +2,6 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 
-
 if (isset($_SESSION['show_logout_message'])) {
     $logoutMessage = $_SESSION['logout_message'] ?? 'You have been successfully logged out.';
     unset($_SESSION['show_logout_message']);
@@ -24,7 +23,6 @@ if (isset($_SESSION['show_logout_message'])) {
 $errors = [];
 $success = false;
 
-
 if (isset($_SESSION['user_id'])) {
     header("Location: dashboard.php");
     exit;
@@ -34,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim(isset($_POST['email']) ? $_POST['email'] : '');
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     
-    
     if (empty($email)) {
         $errors[] = "Email is required";
     }
@@ -43,21 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (empty($errors)) {
-        
         $result = loginUser($email, $password);
         
         if ($result['success']) {
-            
             $redirectTo = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : 'dashboard.php';
             unset($_SESSION['redirect_after_login']);
-            
             
             $_SESSION['alert'] = [
                 'title' => 'Welcome back!',
                 'message' => 'Login successful',
                 'type' => 'success'
             ];
-            
             
             header("Location: $redirectTo");
             exit;
@@ -119,7 +112,6 @@ include '../includes/header.php';
 </div>
 
 <script>
-
 (function () {
     'use strict'
     var forms = document.querySelectorAll('.needs-validation')
@@ -133,7 +125,6 @@ include '../includes/header.php';
         }, false)
     })
 })()
-
 
 <?php if (!empty($errors)): ?>
 Swal.fire({

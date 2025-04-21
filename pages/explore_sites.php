@@ -2,24 +2,18 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 
-// Require login to access this page
 requireLogin();
 
-// Get user data
 $user = getUserById($_SESSION['user_id']);
 if (!$user) {
-    // If user not found, redirect to login
     logoutUser();
     header("Location: login.php");
     exit;
 }
 
-// Get all tourist sites from session storage
 $sites = $_SESSION['db']['tourist_sites'];
-
-// Add more sample tourist sites for a better user experience
 $additionalSites = [
-    // Philippine Tourist Sites
+
     [
         'id' => 3,
         'name' => 'Chocolate Hills',
@@ -76,7 +70,7 @@ $additionalSites = [
         'category' => 'Historical Site',
         'image' => APP_URL . '/assets/images/sites/statue-of-liberty.jpg'
     ],
-    // International Tourist Sites
+
     [
         'id' => 10,
         'name' => 'Eiffel Tower',
@@ -183,41 +177,38 @@ $additionalSites = [
     ]
 ];
 
-// Merge the additional sites with the existing ones
 $sites = array_merge($sites, $additionalSites);
 
-// Filter functionality
 $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
 $category = isset($_GET['category']) ? $_GET['category'] : '';
 
-// Pagination settings
-$itemsPerPage = 6; // Number of sites per page
+$itemsPerPage = 6;
 $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($currentPage < 1) $currentPage = 1;
 
-if (!empty($filter)) {
+if (!empty($filter) || !empty($category)) {
     $filteredSites = [];
     foreach ($sites as $site) {
-        if (stripos($site['name'], $filter) !== false || 
-            stripos($site['description'], $filter) !== false || 
-            stripos($site['address'], $filter) !== false) {
+        $matchesFilter = empty($filter) || 
+                         stripos($site['name'], $filter) !== false || 
+                         stripos($site['description'], $filter) !== false || 
+                         stripos($site['address'], $filter) !== false;
+                         
+        $matchesCategory = empty($category) || $site['category'] === $category;
+        
+        if ($matchesFilter && $matchesCategory) {
             $filteredSites[] = $site;
         }
     }
     $sites = $filteredSites;
 }
 
-if (!empty($category)) {
-    $filteredSites = [];
-    foreach ($sites as $site) {
-        if ($site['category'] === $category) {
-            $filteredSites[] = $site;
-        }
-    }
-    $sites = $filteredSites;
-}
+$totalSites = count($sites);
+$totalPages = ceil($totalSites / $itemsPerPage);
 
-// Get unique categories for filter dropdown
+$startIndex = ($currentPage - 1) * $itemsPerPage;
+$paginatedSites = array_slice($sites, $startIndex, $itemsPerPage);
+
 $categories = [];
 foreach ($_SESSION['db']['tourist_sites'] as $site) {
     if (!in_array($site['category'], $categories)) {
@@ -568,19 +559,19 @@ include '../includes/header.php';
                 </div>
             <?php endforeach; ?>
             
-            <!-- Pagination Navigation -->
+
             <?php if ($totalPages > 1): ?>
             <div class="col-12 mt-4">
                 <nav aria-label="Tourist sites pagination">
                     <ul class="pagination justify-content-center">
-                        <!-- Previous page link -->
+
                         <li class="page-item <?php echo ($currentPage <= 1) ? 'disabled' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $currentPage - 1; ?><?php echo !empty($filter) ? '&filter=' . urlencode($filter) : ''; ?><?php echo !empty($category) ? '&category=' . urlencode($category) : ''; ?>" aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
                         
-                        <!-- Page number links -->
+
                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                             <li class="page-item <?php echo ($currentPage == $i) ? 'active' : ''; ?>">
                                 <a class="page-link" href="?page=<?php echo $i; ?><?php echo !empty($filter) ? '&filter=' . urlencode($filter) : ''; ?><?php echo !empty($category) ? '&category=' . urlencode($category) : ''; ?>">
@@ -589,7 +580,7 @@ include '../includes/header.php';
                             </li>
                         <?php endfor; ?>
                         
-                        <!-- Next page link -->
+
                         <li class="page-item <?php echo ($currentPage >= $totalPages) ? 'disabled' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $currentPage + 1; ?><?php echo !empty($filter) ? '&filter=' . urlencode($filter) : ''; ?><?php echo !empty($category) ? '&category=' . urlencode($category) : ''; ?>" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
@@ -602,7 +593,7 @@ include '../includes/header.php';
         <?php endif; ?>
     </div>
     
-    <!-- Page Information -->
+
     <?php if (!empty($sites)): ?>
     <div class="row mt-3">
         <div class="col-12 text-center text-muted">
@@ -613,7 +604,7 @@ include '../includes/header.php';
 </div>
 
 <style>
-/* Booking.com inspired styles */
+
 .booking-search-container {
     margin-top: -1.5rem;
 }
@@ -638,7 +629,7 @@ include '../includes/header.php';
     object-fit: cover;
 }
 
-/* Custom styling for form elements */
+
 .input-group-text {
     color: #0071c2;
 }
@@ -648,7 +639,7 @@ include '../includes/header.php';
     box-shadow: 0 0 0 0.25rem rgba(0, 113, 194, 0.25);
 }
 
-/* Pagination styling */
+
 .pagination .page-link {
     color: #0071c2;
 }
@@ -658,13 +649,13 @@ include '../includes/header.php';
     border-color: #0071c2;
 }
 
-/* Site gallery styling */
+
 .site-gallery .thumbnail:hover {
     opacity: 0.8;
     cursor: pointer;
 }
 
-/* Activity info styling */
+
 .activity-info .badge {
     font-size: 0.75rem;
     font-weight: normal;

@@ -252,4 +252,90 @@ function resetPassword($email, $token, $newPassword) {
     
     return ['success' => false, 'message' => 'Failed to reset password'];
 }
+
+function updateUser($userId, $data, $currentPassword = null) {
+    require_once __DIR__ . '/security_functions.php';
+    
+    $user = getUserById($userId);
+    if (!$user) {
+        return ['success' => false, 'message' => 'User not found'];
+    }
+    
+    $updates = [];
+    $errors = [];
+    
+    // Update name if provided
+    if (isset($data['name']) && !empty($data['name'])) {
+        $name = sanitizeString(trim($data['name']));
+        if ($name !== $user['name']) {
+            $updates['name'] = $name;
+            $_SESSION['user_name'] = $name; // Update session data
+        }
+    }
+    
+    // Update email if provided
+    if (isset($data['email']) && !empty($data['email'])) {
+        $email = sanitizeEmail(trim($data['email']));
+        
+        if (!$email) {
+            $errors[] = 'Invalid email format';
+        } else if ($email !== $user['email']) {
+            // Check if email is already in use by another user
+            foreach ($_SESSION['db']['users'] as $otherUser) {
+                if ($otherUser['id'] !== $userId && strtolower($otherUser['email']) === strtolower($email)) {
+                    $errors[] = 'Email is already in use by another account';
+                    break;
+                }
+            }
+            
+            if (empty($errors)) {
+                $updates['email'] = $email;
+                $_SESSION['user_email'] = $email; // Update session data
+            }
+        }
+    }
+    
+    // Update password if provided
+    if (isset($data['new_password']) && !empty($data['new_password'])) {
+        // Verify current password
+        if (!$currentPassword || !password_verify($currentPassword, $user['password'])) {
+            $errors[] = 'Current password is incorrect';
+        } else {
+            require_once __DIR__ . '/password_policy.php';
+            $passwordValidation = validatePasswordStrength($data['new_password']);
+            
+            if (!$passwordValidation['success']) {
+                $errors[] = 'New password does not meet security requirements';
+            } else {
+                $updates['password'] = password_hash($data['new_password'], PASSWORD_BCRYPT, ['cost' => 12]);
+            }
+        }
+    }
+    
+    // If there are errors, return them
+    if (!empty($errors)) {
+        return ['success' => false, 'message' => $errors[0], 'errors' => $errors];
+    }
+    
+    // If there are no updates, return success
+    if (empty($updates)) {
+        return ['success' => true, 'message' => 'No changes were made'];
+    }
+    
+    // Apply updates
+    foreach ($_SESSION['db']['users'] as &$dbUser) {
+        if ($dbUser['id'] === $userId) {
+            foreach ($updates as $key => $value) {
+                $dbUser[$key] = $value;
+            }
+            $dbUser['updated_at'] = date('Y-m-d H:i:s');
+            break;
+        }
+    }
+    
+    // Save changes
+    saveSessionData();
+    
+    return ['success' => true, 'message' => 'Profile updated successfully'];
+}
 ?>

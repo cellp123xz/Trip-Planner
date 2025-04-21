@@ -2,10 +2,8 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 
-// Require login to view trip
 requireLogin();
 
-// Get trip ID from URL
 $tripId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if (!$tripId) {
@@ -18,7 +16,6 @@ if (!$tripId) {
     exit;
 }
 
-// Find the trip in the session storage
 $trip = null;
 foreach ($_SESSION['db']['trips'] as $t) {
     if ($t['id'] == $tripId && $t['user_id'] == $_SESSION['user_id']) {
@@ -27,7 +24,6 @@ foreach ($_SESSION['db']['trips'] as $t) {
     }
 }
 
-// If trip not found or doesn't belong to the user
 if (!$trip) {
     $_SESSION['alert'] = [
         'title' => 'Error',
@@ -38,15 +34,12 @@ if (!$trip) {
     exit;
 }
 
-// Get hotels and tourist sites for recommendations
 $hotels = $_SESSION['db']['hotels'];
 $touristSites = $_SESSION['db']['tourist_sites'];
 
-// Filter recommendations based on destination
 $recommendedHotels = [];
 $recommendedSites = [];
 
-// Get selected hotel if any
 $selectedHotel = null;
 if (!empty($trip['hotel_id'])) {
     foreach ($hotels as $hotel) {
@@ -57,7 +50,6 @@ if (!empty($trip['hotel_id'])) {
     }
 }
 
-// Get selected tourist sites if any
 $selectedSites = [];
 if (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites'])) {
     foreach ($touristSites as $site) {
@@ -67,7 +59,6 @@ if (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites'])) {
     }
 }
 
-// Get additional recommendations based on destination
 foreach ($hotels as $hotel) {
     if (stripos($hotel['address'], $trip['destination']) !== false && 
         (!$selectedHotel || $hotel['id'] != $selectedHotel['id'])) {
@@ -118,7 +109,6 @@ include '../includes/header.php';
     </div>
 
     <div class="row g-4">
-        <!-- Trip Details -->
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
@@ -194,10 +184,8 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <!-- Recommendations -->
         <div class="col-lg-4">
-            <!-- Hotels -->
-            <!-- Selected Hotel -->
+
             <?php if ($selectedHotel): ?>
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -222,7 +210,7 @@ include '../includes/header.php';
             </div>
             <?php endif; ?>
             
-            <!-- Recommended Hotels -->
+
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><?php echo $selectedHotel ? 'Other Recommended Hotels' : 'Recommended Hotels'; ?></h5>
@@ -250,7 +238,7 @@ include '../includes/header.php';
                 </div>
             </div>
 
-            <!-- Selected Tourist Sites -->
+
             <?php if (!empty($selectedSites)): ?>
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -275,7 +263,7 @@ include '../includes/header.php';
             </div>
             <?php endif; ?>
             
-            <!-- Recommended Tourist Sites -->
+
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><?php echo !empty($selectedSites) ? 'Other Places to Visit' : 'Places to Visit'; ?></h5>

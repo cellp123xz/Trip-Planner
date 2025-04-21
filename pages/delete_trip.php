@@ -2,10 +2,8 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 
-// Require login to delete trip
 requireLogin();
 
-// Get trip ID from URL
 $tripId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if (!$tripId) {
@@ -18,7 +16,6 @@ if (!$tripId) {
     exit;
 }
 
-// Find the trip in the session storage
 $tripFound = false;
 $tripIndex = -1;
 
@@ -30,7 +27,6 @@ foreach ($_SESSION['db']['trips'] as $key => $trip) {
     }
 }
 
-// If trip not found or doesn't belong to the user
 if (!$tripFound) {
     $_SESSION['alert'] = [
         'title' => 'Error',
@@ -41,10 +37,8 @@ if (!$tripFound) {
     exit;
 }
 
-// Delete the trip from session storage
 array_splice($_SESSION['db']['trips'], $tripIndex, 1);
 
-// Set success message and redirect
 $_SESSION['alert'] = [
     'title' => 'Success!',
     'message' => 'Your trip has been deleted successfully.',

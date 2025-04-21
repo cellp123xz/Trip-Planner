@@ -5,7 +5,6 @@ require_once '../includes/alerts.php';
 require_once '../includes/csrf_protection.php';
 require_once '../includes/security_functions.php';
 
-// Only guests can access password reset
 if (isLoggedIn()) {
     header("Location: dashboard.php");
     exit;
@@ -17,7 +16,6 @@ $validToken = false;
 $email = $_GET['email'] ?? '';
 $token = $_GET['token'] ?? '';
 
-// Verify token
 if (!empty($token) && !empty($email)) {
     $result = verifyPasswordResetToken($email, $token);
     
@@ -42,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $validToken) {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
-    // Validation
     if (empty($password)) {
         $errors[] = "Password is required";
     } elseif (strlen($password) < 8) {
@@ -54,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $validToken) {
     }
     
     if (empty($errors)) {
-        // Reset the password using our function
         $result = resetPassword($email, $token, $password);
         
         if ($result['success']) {
@@ -80,7 +76,6 @@ include '../includes/header.php';
             <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Create New Password</h2>
-                    
                     <?php if ($validToken): ?>
                         <?php if (!empty($errors)): ?>
                             <?php foreach ($errors as $error): ?>
@@ -115,11 +110,9 @@ include '../includes/header.php';
 </div>
 
 <script>
-// Password match validation
 document.getElementById('confirm_password').addEventListener('input', function() {
     const password = document.getElementById('password').value;
     const confirmPassword = this.value;
-    
     if (password !== confirmPassword) {
         this.setCustomValidity('Passwords do not match');
     } else {

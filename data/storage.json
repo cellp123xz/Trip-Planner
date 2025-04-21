@@ -21,7 +21,7 @@
             "is_verified": true,
             "email_verified": 1,
             "created_at": "2025-04-20 09:36:41",
-            "last_login": "2025-04-21 06:18:04",
+            "last_login": "2025-04-21 07:26:54",
             "reset_expiry": 1745162312
         }
     ],
@@ -63,6 +63,34 @@
             "status": "planned",
             "created_at": "2025-04-21 06:03:36",
             "updated_at": "2025-04-21 06:03:36"
+        },
+        {
+            "id": 4,
+            "user_id": 2,
+            "destination": "Bohol, Philippines",
+            "start_date": "2025-04-21",
+            "end_date": "2025-04-28",
+            "activities": "",
+            "notes": "",
+            "hotel_id": 6,
+            "tourist_sites": [],
+            "status": "planned",
+            "created_at": "2025-04-21 07:33:35",
+            "updated_at": "2025-04-21 07:33:35"
+        },
+        {
+            "id": 5,
+            "user_id": 2,
+            "destination": "",
+            "start_date": "2025-04-21",
+            "end_date": "2025-04-28",
+            "activities": "Booked from hotel browsing",
+            "notes": "",
+            "hotel_id": 2,
+            "tourist_sites": [],
+            "status": "planned",
+            "created_at": "2025-04-21 08:36:48",
+            "updated_at": "2025-04-21 08:36:48"
         }
     ],
     "hotels": [

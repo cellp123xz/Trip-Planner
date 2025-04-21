@@ -7,25 +7,32 @@ requireLogin();
 $errors = [];
 $success = false;
 
-// Get all hotels and tourist sites for selection
 $hotels = getAllHotels();
 $tourist_sites = getAllTouristSites();
 
-// Check if hotel_id is provided in URL (coming from browse_hotels.php)
 $preSelectedHotelId = isset($_GET['hotel_id']) ? (int)$_GET['hotel_id'] : null;
 $preSelectedHotel = null;
 $preSelectedDestination = '';
 
-// If hotel_id is provided, find the hotel and pre-fill destination
 if ($preSelectedHotelId) {
     foreach ($hotels as $hotel) {
         if ($hotel['id'] == $preSelectedHotelId) {
             $preSelectedHotel = $hotel;
-            // Extract city/location from address for destination
             $addressParts = explode(',', $hotel['address']);
             $preSelectedDestination = trim($addressParts[0] ?? '');
             break;
         }
+    }
+}
+
+$recommendedHotels = [];
+$preSelectedHotels = [];
+if (!empty($_GET['destination'])) {
+    $preSelectedDestination = trim($_GET['destination']);
+    $recommendedHotels = getRecommendedHotels($preSelectedDestination, 3);
+    
+    if (empty($recommendedHotels)) {
+        $preSelectedHotels = generateDestinationHotels($preSelectedDestination);
     }
 }
 
@@ -112,15 +119,36 @@ include '../includes/header.php';
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <div class="mb-3">
                                 <label for="destination" class="form-label">Destination</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white">
-                                        <i class="fas fa-map-marker-alt text-primary"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="destination" name="destination" 
-                                           value="<?php echo htmlspecialchars($_POST['destination'] ?? $preSelectedDestination ?? ''); ?>" required>
+                                <div class="row g-2">
+                                    <div class="col-md-5">
+                                        <select class="form-select" id="country" name="country">
+                                            <option value="">-- Select a Country --</option>
+                                            <?php foreach(getCountries() as $country): ?>
+                                                <option value="<?php echo htmlspecialchars($country); ?>">
+                                                    <?php echo htmlspecialchars($country); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-map-marker-alt text-primary"></i>
+                                            </span>
+                                            <input type="text" class="form-control border-start-0" id="destination" name="destination" 
+                                                   placeholder="Where are you going?" value="<?php echo htmlspecialchars($_POST['destination'] ?? $preSelectedDestination ?? ''); ?>" 
+                                                   list="destination-list" autocomplete="off" required>
+                                            <datalist id="destination-list">
+                                                <?php foreach(getPopularDestinations() as $dest): ?>
+                                                    <option value="<?php echo htmlspecialchars($dest); ?>">
+                                                <?php endforeach; ?>
+                                            </datalist>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="form-text">First select a country, then choose a destination to see recommended hotels</div>
                             </div>
                         </div>
 
@@ -179,13 +207,79 @@ include '../includes/header.php';
                                 </div>
                             </div>
                         </div>
+                        <?php elseif ((!empty($recommendedHotels) || !empty($preSelectedHotels)) && !empty($destination)): ?>
+                        <div class="mb-4">
+                            <div class="alert alert-info">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Recommended Hotels for <?php echo htmlspecialchars($destination); ?></strong>
+                                <p class="mb-0 small">We've found the best hotels for your destination based on ratings and location.</p>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <?php 
+                                // Use either recommended hotels or generated hotels
+                                $displayHotels = !empty($recommendedHotels) ? $recommendedHotels : $preSelectedHotels;
+                                foreach ($displayHotels as $index => $hotel): 
+                                ?>
+                                <div class="col-md-4">
+                                    <div class="card h-100 <?php echo $index === 0 ? 'border-primary' : ''; ?>">
+                                        <?php if ($index === 0): ?>
+                                        <div class="card-header bg-primary text-white py-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-award me-2"></i>
+                                                <span>Best Match</span>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="hotel_id" 
+                                                       id="hotel_<?php echo $hotel['id']; ?>" value="<?php echo $hotel['id']; ?>"
+                                                       <?php echo $index === 0 ? 'checked' : ''; ?>>
+                                                <label class="form-check-label w-100" for="hotel_<?php echo $hotel['id']; ?>">
+                                                    <h6 class="mb-1"><?php echo htmlspecialchars($hotel['name']); ?></h6>
+                                                    <p class="small text-muted mb-1">
+                                                        <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                                                        <?php echo htmlspecialchars($hotel['address']); ?>
+                                                    </p>
+                                                    <div class="mb-2">
+                                                        <span class="badge bg-success"><?php echo $hotel['rating']; ?> ★</span>
+                                                        <span class="badge bg-secondary"><?php echo $hotel['price_range']; ?></span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-link" id="showAllHotelsBtn">Show all available hotels</button>
+                            </div>
+                            
+                            <div id="allHotelsSelect" style="display: none;">
+                                <label for="hotel_id_all" class="form-label">All Available Hotels</label>
+                                <select class="form-select" id="hotel_id_all" name="hotel_id_all">
+                                    <option value="">-- Select a Hotel --</option>
+                                    <?php foreach ($hotels as $hotel): ?>
+                                        <option value="<?php echo $hotel['id']; ?>">
+                                            <?php echo htmlspecialchars($hotel['name']); ?> - <?php echo htmlspecialchars($hotel['address']); ?> (<?php echo $hotel['price_range']; ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
                         <?php else: ?>
                         <div class="mb-4">
                             <label for="hotel_id" class="form-label">Select a Hotel</label>
                             <select class="form-select" id="hotel_id" name="hotel_id" required>
                                 <option value="">-- Select a Hotel --</option>
                                 <?php foreach ($hotels as $hotel): ?>
-                                    <option value="<?php echo $hotel['id']; ?>" <?php echo ((isset($_POST['hotel_id']) && $_POST['hotel_id'] == $hotel['id'])) ? 'selected' : ''; ?>>
+                                    <option value="<?php echo $hotel['id']; ?>" 
+                                            <?php echo ((isset($_POST['hotel_id']) && $_POST['hotel_id'] == $hotel['id'])) ? 'selected' : ''; ?>
+                                            data-address="<?php echo htmlspecialchars($hotel['address']); ?>"
+                                            data-rating="<?php echo $hotel['rating']; ?>">
                                         <?php echo htmlspecialchars($hotel['name']); ?> - <?php echo htmlspecialchars($hotel['address']); ?> (<?php echo $hotel['price_range']; ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -376,7 +470,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
     const hotelSelect = document.getElementById('hotel_id');
+    const hotelSelectAll = document.getElementById('hotel_id_all');
+    const showAllHotelsBtn = document.getElementById('showAllHotelsBtn');
+    const allHotelsSelect = document.getElementById('allHotelsSelect');
     const touristSiteCheckboxes = document.querySelectorAll('input[name="tourist_sites[]"]');
+    const hotelRadioButtons = document.querySelectorAll('input[type="radio"][name="hotel_id"]');
     
     // Summary elements
     const summaryDestination = document.getElementById('summary-destination');
@@ -385,11 +483,249 @@ document.addEventListener('DOMContentLoaded', function() {
     const summaryHotel = document.getElementById('summary-hotel');
     const summaryAttractions = document.getElementById('summary-attractions');
     
-    // Update destination
-    if (destinationInput) {
-        destinationInput.addEventListener('input', function() {
-            summaryDestination.textContent = this.value || 'Not selected';
+    // Show all hotels functionality
+    if (showAllHotelsBtn && allHotelsSelect) {
+        showAllHotelsBtn.addEventListener('click', function() {
+            allHotelsSelect.style.display = 'block';
+            this.style.display = 'none';
         });
+        
+        if (hotelSelectAll) {
+            hotelSelectAll.addEventListener('change', function() {
+                const selectedValue = this.value;
+                if (selectedValue) {
+                    // Uncheck all radio buttons
+                    hotelRadioButtons.forEach(radio => {
+                        radio.checked = false;
+                    });
+                    
+                    // Create a hidden input with the selected hotel_id
+                    let hiddenInput = document.getElementById('selected_hotel_id');
+                    if (!hiddenInput) {
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'hotel_id';
+                        hiddenInput.id = 'selected_hotel_id';
+                        this.parentNode.appendChild(hiddenInput);
+                    }
+                    hiddenInput.value = selectedValue;
+                    
+                    // Update summary
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (summaryHotel) {
+                        summaryHotel.textContent = selectedOption.text.split(' - ')[0] || 'Not selected';
+                    }
+                }
+            });
+        }
+    }
+    
+    // Update destination and fetch hotel recommendations
+    if (destinationInput) {
+        // Initial update of summary
+        if (summaryDestination && destinationInput.value) {
+            summaryDestination.textContent = destinationInput.value;
+        }
+        
+        destinationInput.addEventListener('input', function() {
+            if (summaryDestination) {
+                summaryDestination.textContent = this.value || 'Not selected';
+            }
+        });
+        
+        // Handle country selection to update destination options
+        const countrySelect = document.getElementById('country');
+        if (countrySelect) {
+            countrySelect.addEventListener('change', function() {
+                const country = this.value;
+                if (country) {
+                    // Clear current destination
+                    if (destinationInput) {
+                        destinationInput.value = '';
+                    }
+                    
+                    // Update destination datalist with options from this country
+                    updateDestinationOptions(country);
+                }
+            });
+        }
+        
+        // Function to update destination options based on country
+        function updateDestinationOptions(country) {
+            // Make an AJAX request to get destinations for this country
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `get_destinations.php?country=${encodeURIComponent(country)}`, true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const destinations = JSON.parse(xhr.responseText);
+                        const datalist = document.getElementById('destination-list');
+                        if (datalist) {
+                            // Clear existing options
+                            datalist.innerHTML = '';
+                            
+                            // Add new options
+                            destinations.forEach(dest => {
+                                const option = document.createElement('option');
+                                option.value = dest;
+                                datalist.appendChild(option);
+                            });
+                            
+                            // Focus the destination input
+                            if (destinationInput) {
+                                destinationInput.focus();
+                                destinationInput.placeholder = `Select a destination in ${country}...`;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing destinations:', e);
+                    }
+                }
+            };
+            xhr.send();
+        }
+        
+        // Handle destination selection to filter hotels
+        if (destinationInput) {
+            destinationInput.addEventListener('change', function() {
+                const destination = this.value.trim();
+                if (destination.length > 2) {
+                    filterHotelsByDestination(destination.toLowerCase());
+                }
+            });
+        }
+        
+        // Filter hotels based on destination
+        function filterHotelsByDestination(destination) {
+            if (!hotelSelect) return;
+            
+            // Show a loading message
+            const label = document.querySelector('label[for="hotel_id"]');
+            if (label) {
+                label.innerHTML = `Select a Hotel <span class="badge bg-info ms-2">Finding hotels in ${destination}...</span>`;
+            }
+            
+            const options = hotelSelect.querySelectorAll('option');
+            let matchCount = 0;
+            let bestMatch = null;
+            let bestRating = 0;
+            
+            // First pass: hide all options except the default one
+            options.forEach((option, index) => {
+                if (index === 0) return; // Skip the default "Select a Hotel" option
+                
+                const address = option.getAttribute('data-address')?.toLowerCase() || '';
+                const rating = parseFloat(option.getAttribute('data-rating') || 0);
+                
+                // Check if this hotel is in the selected destination
+                const isMatch = address.includes(destination);
+                
+                if (isMatch) {
+                    option.style.display = '';
+                    matchCount++;
+                    
+                    // Track the highest rated hotel as the best match
+                    if (rating > bestRating) {
+                        bestRating = rating;
+                        bestMatch = option;
+                    }
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+            
+            // Use AJAX to get hotels for this destination without page refresh
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `get_hotels.php?destination=${encodeURIComponent(destination)}`, true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const hotels = JSON.parse(xhr.responseText);
+                        updateHotelOptions(hotels, destination);
+                    } catch (e) {
+                        console.error('Error parsing hotels:', e);
+                        // If AJAX fails, fallback to redirect
+                        window.location.href = 'create_trip.php?destination=' + encodeURIComponent(destination);
+                    }
+                } else {
+                    // If AJAX fails, fallback to redirect
+                    window.location.href = 'create_trip.php?destination=' + encodeURIComponent(destination);
+                }
+            };
+            xhr.onerror = function() {
+                // If AJAX fails, fallback to redirect
+                window.location.href = 'create_trip.php?destination=' + encodeURIComponent(destination);
+            };
+            xhr.send();
+        }
+        
+        // Function to update hotel options with AJAX results
+        function updateHotelOptions(hotels, destination) {
+            if (!hotelSelect) return;
+            
+            // Clear existing options except the first one
+            while (hotelSelect.options.length > 1) {
+                hotelSelect.remove(1);
+            }
+            
+            // Add new options
+            let matchCount = 0;
+            let bestMatch = null;
+            let bestRating = 0;
+            
+            hotels.forEach(hotel => {
+                const option = document.createElement('option');
+                option.value = hotel.id;
+                option.text = `${hotel.name} - ${hotel.rating}★ - ${hotel.price_range}`;
+                option.dataset.rating = hotel.rating;
+                option.dataset.address = hotel.address;
+                option.dataset.amenities = hotel.amenities;
+                option.dataset.image = hotel.image;
+                hotelSelect.appendChild(option);
+                
+                matchCount++;
+                
+                // Keep track of the best rated hotel
+                const rating = parseFloat(hotel.rating);
+                if (rating > bestRating) {
+                    bestRating = rating;
+                    bestMatch = option;
+                }
+            });
+            
+            // If we found matches, select the best one
+            if (bestMatch) {
+                bestMatch.selected = true;
+                if (summaryHotel) {
+                    summaryHotel.textContent = bestMatch.text.split(' - ')[0];
+                }
+            }
+            
+            // Update the label
+            const label = document.querySelector('label[for="hotel_id"]');
+            if (label) {
+                if (matchCount > 0) {
+                    label.innerHTML = `Select a Hotel <span class="badge bg-success ms-2">${matchCount} hotels found in ${destination}</span>`;
+                } else {
+                    label.innerHTML = `Select a Hotel <span class="badge bg-warning ms-2">No hotels found</span>`;
+                }
+            }
+            
+            // Show the hotel selection section
+            const hotelSection = document.querySelector('#hotel-selection');
+            if (hotelSection) {
+                hotelSection.style.display = 'block';
+            }
+        }
+        
+        // Initial filter if destination is already set
+        if (destinationInput && destinationInput.value.trim().length > 0) {
+            // Don't auto-filter if we already have a destination from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('destination')) {
+                filterHotelsByDestination(destinationInput.value.trim());
+            }
+        }
     }
     
     // Update dates and duration
@@ -397,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = startDateInput.value;
         const end = endDateInput.value;
         
-        if (start && end) {
+        if (start && end && summaryDates && summaryDuration) {
             const startDate = new Date(start);
             const endDate = new Date(end);
             
@@ -420,16 +756,31 @@ document.addEventListener('DOMContentLoaded', function() {
         endDateInput.addEventListener('change', updateDates);
     }
     
-    // Update hotel
-    if (hotelSelect) {
+    // Update hotel from dropdown
+    if (hotelSelect && summaryHotel) {
         hotelSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             summaryHotel.textContent = selectedOption.text.split(' - ')[0] || 'Not selected';
         });
     }
     
+    // Update hotel from radio buttons
+    hotelRadioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked && summaryHotel) {
+                const label = document.querySelector(`label[for="${this.id}"]`);
+                if (label) {
+                    const hotelName = label.querySelector('h6').textContent;
+                    summaryHotel.textContent = hotelName;
+                }
+            }
+        });
+    });
+    
     // Update attractions count
     function updateAttractions() {
+        if (!summaryAttractions) return;
+        
         let count = 0;
         touristSiteCheckboxes.forEach(checkbox => {
             if (checkbox.checked) count++;

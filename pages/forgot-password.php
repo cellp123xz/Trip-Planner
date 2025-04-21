@@ -6,37 +6,31 @@ require_once '../includes/alerts.php';
 require_once '../includes/csrf_protection.php';
 require_once '../includes/security_functions.php';
 
-// Set security headers
 setSecurityHeaders();
 
 $errors = [];
 $success = false;
 $email = '';
 
-// Only guests can access password reset
 if (isLoggedIn()) {
     header("Location: dashboard.php");
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verify CSRF token
     if (!csrfCheck()) {
         $errors[] = "Security token validation failed. Please try again.";
     } else {
         $email = sanitizeEmail(trim($_POST['email'] ?? ''));
         
-        // Validate email
         if (empty($email)) {
             $errors[] = "Email address is required";
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = "Invalid email format";
         } else {
-            // Generate password reset token
             $result = generatePasswordResetToken($email);
             
             if ($result['success']) {
-                // For development, always display the token and URL instead of sending email
                 if (isset($result['token'])) {
                     $_SESSION['dev_reset_info'] = [
                         'email' => $result['email'],
@@ -129,7 +123,6 @@ include '../includes/header.php';
 </div>
 
 <script>
-// Form validation
 (function () {
     'use strict'
     var forms = document.querySelectorAll('.needs-validation')

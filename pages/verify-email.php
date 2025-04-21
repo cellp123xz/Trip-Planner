@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($code)) {
         $errors[] = "Verification code is required";
     } else {
-        // Use our verification function
         $result = verifyUserEmail($email, $code);
         
         if ($result['success']) {
@@ -84,7 +83,6 @@ include '../includes/header.php';
 
 <script>
 function resendCode() {
-    // Show loading state
     Swal.fire({
         title: 'Sending...',
         text: 'Sending a new verification code to your email',
@@ -94,7 +92,6 @@ function resendCode() {
         }
     });
     
-    // Make AJAX request to resend verification code
     fetch('resend-verification.php', {
         method: 'GET',
         headers: {

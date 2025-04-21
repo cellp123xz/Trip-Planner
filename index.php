@@ -1,14 +1,11 @@
 <?php
-// Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include configuration file
 require_once 'includes/config.php';
 ?>
 <!DOCTYPE html>
@@ -17,9 +14,9 @@ require_once 'includes/config.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TripPlanner - Plan Your Next Adventure</title>
-    <!-- Bootstrap 5 CSS -->
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="<?php echo APP_URL; ?>/assets/css/style.css" rel="stylesheet">
     <link href="<?php echo APP_URL; ?>/assets/css/landing.css" rel="stylesheet">
@@ -31,7 +28,7 @@ require_once 'includes/config.php';
     <link href="<?php echo APP_URL; ?>/assets/css/cta.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
+
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="<?php echo APP_URL; ?>/index.php">
@@ -67,7 +64,7 @@ require_once 'includes/config.php';
         </div>
     </nav>
 
-    <!-- Hero Section -->
+
     <section class="hero-section">
         <div class="container">
             <div class="row align-items-center">
@@ -95,7 +92,7 @@ require_once 'includes/config.php';
         </div>
     </section>
 
-    <!-- Features Section -->
+
     <section class="features-section">
         <div class="container">
             <h2 class="text-center mb-5">Why Choose TripPlanner?</h2>
@@ -125,7 +122,7 @@ require_once 'includes/config.php';
         </div>
     </section>
 
-    <!-- Popular Destinations Section -->
+
     <section class="destinations-section">
         <div class="container">
             <div class="section-title">
@@ -359,7 +356,7 @@ require_once 'includes/config.php';
         </div>
     </section>
 
-    <!-- Call to Action Section -->
+
     <section class="cta-section">
         <div class="container">
             <div class="cta-content">
@@ -378,7 +375,7 @@ require_once 'includes/config.php';
         </div>
     </section>
 
-    <!-- Footer -->
+
     <footer class="footer mt-auto py-4 bg-dark text-white">
         <div class="container">
             <div class="row">
@@ -413,7 +410,7 @@ require_once 'includes/config.php';
         </div>
     </footer>
 
-    <!-- Bootstrap 5 Bundle with Popper -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?php echo APP_URL; ?>/assets/js/main.js"></script>
 </body>

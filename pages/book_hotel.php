@@ -112,7 +112,6 @@ include '../includes/header.php';
     </div>
 
     <div class="row">
-        <!-- Hotel Information -->
         <div class="col-lg-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white">
@@ -151,7 +150,6 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <!-- Booking Form -->
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-white">

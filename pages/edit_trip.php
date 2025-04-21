@@ -2,10 +2,8 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 
-// Require login to edit trip
 requireLogin();
 
-// Get trip ID from URL
 $tripId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if (!$tripId) {
@@ -18,7 +16,6 @@ if (!$tripId) {
     exit;
 }
 
-// Find the trip in the session storage
 $trip = null;
 foreach ($_SESSION['db']['trips'] as $key => $t) {
     if ($t['id'] == $tripId && $t['user_id'] == $_SESSION['user_id']) {
@@ -28,11 +25,9 @@ foreach ($_SESSION['db']['trips'] as $key => $t) {
     }
 }
 
-// Get all hotels and tourist sites for selection
 $hotels = $_SESSION['db']['hotels'];
 $tourist_sites = $_SESSION['db']['tourist_sites'];
 
-// Get selected hotel if any
 $selectedHotel = null;
 if (!empty($trip['hotel_id'])) {
     foreach ($hotels as $hotel) {
@@ -43,7 +38,6 @@ if (!empty($trip['hotel_id'])) {
     }
 }
 
-// Get selected tourist sites if any
 $selectedSites = [];
 if (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites'])) {
     foreach ($tourist_sites as $site) {
@@ -52,8 +46,6 @@ if (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites'])) {
         }
     }
 }
-
-// If trip not found or doesn't belong to the user
 if (!$trip) {
     $_SESSION['alert'] = [
         'title' => 'Error',
@@ -68,7 +60,6 @@ $errors = [];
 $success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate input
     $destination = trim($_POST['destination'] ?? '');
     $start_date = trim($_POST['start_date'] ?? '');
     $end_date = trim($_POST['end_date'] ?? '');
@@ -93,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         try {
-            // Update trip in session storage
             $_SESSION['db']['trips'][$tripKey] = [
                 'id' => $trip['id'],
                 'user_id' => $_SESSION['user_id'],
@@ -109,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'updated_at' => date('Y-m-d H:i:s')
             ];
 
-            // Set success message and redirect
             $_SESSION['alert'] = [
                 'title' => 'Success!',
                 'message' => 'Your trip has been updated successfully.',
@@ -241,7 +230,7 @@ include '../includes/header.php';
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

@@ -370,6 +370,428 @@ function getAllTouristSites() {
     return $_SESSION['db']['tourist_sites'];
 }
 
+function getPriceRangeAmount($priceRange) {
+    // Convert price range symbols to actual price ranges
+    switch ($priceRange) {
+        case '$':
+        case '₱':
+            return rand(1000, 2500);
+        case '$$':
+        case '₱₱':
+            return rand(2500, 5000);
+        case '$$$':
+        case '₱₱₱':
+            return rand(5000, 10000);
+        case '$$$$':
+        case '₱₱₱₱':
+            return rand(10000, 20000);
+        case '$$$$$':
+        case '₱₱₱₱₱':
+            return rand(20000, 50000);
+        default:
+            return rand(3000, 8000); // Default price range
+    }
+}
+
+function getDestinationsByCountry() {
+    return [
+        // Philippines
+        'Philippines' => [
+            'Manila', 'Cebu City', 'Boracay', 'Palawan', 'Bohol', 'Davao City', 
+            'Baguio City', 'Siargao', 'Coron', 'El Nido'
+        ],
+        
+        // Asia
+        'Japan' => ['Tokyo', 'Kyoto', 'Osaka', 'Nara', 'Hiroshima', 'Sapporo', 'Fukuoka'],
+        'South Korea' => ['Seoul', 'Busan', 'Jeju Island', 'Incheon', 'Gyeongju'],
+        'Thailand' => ['Bangkok', 'Phuket', 'Chiang Mai', 'Pattaya', 'Krabi', 'Koh Samui'],
+        'Singapore' => ['Singapore City'],
+        'Indonesia' => ['Bali', 'Jakarta', 'Yogyakarta', 'Lombok', 'Bandung'],
+        'China' => ['Shanghai', 'Beijing', 'Guangzhou', 'Shenzhen', 'Xi\'an', 'Chengdu'],
+        'Hong Kong' => ['Hong Kong Island', 'Kowloon', 'New Territories'],
+        'Vietnam' => ['Hanoi', 'Ho Chi Minh City', 'Da Nang', 'Hoi An', 'Ha Long Bay'],
+        'Malaysia' => ['Kuala Lumpur', 'Penang', 'Langkawi', 'Johor Bahru', 'Melaka'],
+        'Taiwan' => ['Taipei', 'Kaohsiung', 'Taichung', 'Tainan', 'Hualien'],
+        'UAE' => ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah'],
+        
+        // Europe
+        'France' => ['Paris', 'Nice', 'Lyon', 'Marseille', 'Bordeaux', 'Strasbourg'],
+        'United Kingdom' => ['London', 'Edinburgh', 'Manchester', 'Liverpool', 'Glasgow', 'Bath'],
+        'Italy' => ['Rome', 'Venice', 'Florence', 'Milan', 'Naples', 'Amalfi Coast'],
+        'Spain' => ['Barcelona', 'Madrid', 'Seville', 'Valencia', 'Malaga', 'Granada'],
+        'Netherlands' => ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven'],
+        'Germany' => ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne', 'Dresden'],
+        'Czech Republic' => ['Prague', 'Brno', 'Karlovy Vary', 'Český Krumlov', 'Pilsen'],
+        'Austria' => ['Vienna', 'Salzburg', 'Innsbruck', 'Graz', 'Hallstatt'],
+        'Greece' => ['Athens', 'Santorini', 'Mykonos', 'Crete', 'Rhodes', 'Corfu'],
+        'Switzerland' => ['Zurich', 'Geneva', 'Bern', 'Lucerne', 'Interlaken', 'Zermatt'],
+        'Hungary' => ['Budapest', 'Debrecen', 'Szeged', 'Pécs', 'Eger'],
+        'Turkey' => ['Istanbul', 'Antalya', 'Bodrum', 'Cappadocia', 'Izmir'],
+        
+        // Americas
+        'USA' => [
+            'New York City', 'Los Angeles', 'San Francisco', 'Las Vegas', 'Miami',
+            'Chicago', 'Boston', 'Washington DC', 'Seattle', 'San Diego'
+        ],
+        'Canada' => ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Quebec City', 'Ottawa'],
+        'Mexico' => ['Mexico City', 'Cancun', 'Playa del Carmen', 'Puerto Vallarta', 'Cabo San Lucas'],
+        'Brazil' => ['Rio de Janeiro', 'São Paulo', 'Salvador', 'Fortaleza', 'Brasília'],
+        'Argentina' => ['Buenos Aires', 'Mendoza', 'Córdoba', 'Bariloche', 'Salta'],
+        
+        // Oceania
+        'Australia' => ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast'],
+        'New Zealand' => ['Auckland', 'Queenstown', 'Wellington', 'Christchurch', 'Rotorua'],
+        'Fiji' => ['Nadi', 'Suva', 'Denarau Island', 'Coral Coast', 'Mamanuca Islands'],
+        
+        // Africa
+        'Egypt' => ['Cairo', 'Luxor', 'Alexandria', 'Sharm El Sheikh', 'Hurghada'],
+        'South Africa' => ['Cape Town', 'Johannesburg', 'Durban', 'Pretoria', 'Kruger National Park'],
+        'Morocco' => ['Marrakech', 'Casablanca', 'Fes', 'Tangier', 'Essaouira'],
+        'Kenya' => ['Nairobi', 'Mombasa', 'Kisumu', 'Malindi', 'Lamu']
+    ];
+}
+
+function getPopularDestinations() {
+    $destinations = [];
+    $destinationsByCountry = getDestinationsByCountry();
+    
+    foreach ($destinationsByCountry as $country => $cities) {
+        foreach ($cities as $city) {
+            $destinations[] = $city . ', ' . $country;
+        }
+    }
+    
+    return $destinations;
+}
+
+function getCountries() {
+    return array_keys(getDestinationsByCountry());
+}
+
+function getDestinationsForCountry($country) {
+    $destinationsByCountry = getDestinationsByCountry();
+    
+    if (isset($destinationsByCountry[$country])) {
+        $destinations = [];
+        foreach ($destinationsByCountry[$country] as $city) {
+            $destinations[] = $city . ', ' . $country;
+        }
+        return $destinations;
+    }
+    
+    return [];
+}
+
+function getRecommendedHotels($destination, $limit = 3) {
+    $recommendedHotels = [];
+    
+    if (!empty($destination)) {
+        $allHotels = getAllHotels();
+        $otherHotels = [];
+        
+        // First, look for exact matches in the hotel address
+        foreach ($allHotels as $hotel) {
+            if (stripos($hotel['address'], $destination) !== false) {
+                $recommendedHotels[] = $hotel;
+                if (count($recommendedHotels) >= $limit) {
+                    break;
+                }
+            } else {
+                $otherHotels[] = $hotel;
+            }
+        }
+        
+        // If we don't have enough, try to match just the city/location part
+        if (count($recommendedHotels) < $limit) {
+            // Split destination into parts (e.g., "Paris, France" -> ["Paris", "France"])
+            $destinationParts = explode(',', $destination);
+            $mainLocation = trim($destinationParts[0]);
+            $country = isset($destinationParts[1]) ? trim($destinationParts[1]) : '';
+            
+            foreach ($otherHotels as $hotel) {
+                if (stripos($hotel['address'], $mainLocation) !== false) {
+                    $recommendedHotels[] = $hotel;
+                    if (count($recommendedHotels) >= $limit) {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // If still no hotels found, generate new ones for this destination
+        if (empty($recommendedHotels)) {
+            return generateDestinationHotels($destination);
+        }
+    }
+    
+    // If we still don't have enough, add top-rated hotels
+    if (count($recommendedHotels) < $limit) {
+        // Sort by rating (highest first)
+        usort($otherHotels, function($a, $b) {
+            return $b['rating'] <=> $a['rating'];
+        });
+        
+        // Add top-rated hotels until we reach the limit
+        foreach ($otherHotels as $hotel) {
+            if (!in_array($hotel, $recommendedHotels)) {
+                $recommendedHotels[] = $hotel;
+                if (count($recommendedHotels) >= $limit) {
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Sort final results by rating
+    usort($recommendedHotels, function($a, $b) {
+        return $b['rating'] <=> $a['rating'];
+    });
+    
+    return array_slice($recommendedHotels, 0, $limit);
+}
+
+function generateDestinationHotels($destination) {
+    // Extract main location and country
+    $parts = explode(',', $destination);
+    $mainLocation = trim($parts[0]);
+    $country = isset($parts[1]) ? trim($parts[1]) : '';
+    
+    // If no country specified, try to determine it from the destination list
+    if (empty($country)) {
+        $allDestinations = getDestinationsByCountry();
+        foreach ($allDestinations as $countryName => $destinations) {
+            if (in_array($mainLocation, $destinations)) {
+                $country = $countryName;
+                break;
+            }
+        }
+        
+        // If still empty, use a default
+        if (empty($country)) {
+            $country = 'International';
+        }
+    }
+    
+    // Set currency symbol based on country/region
+    $currencySymbol = '$';
+    if (stripos($country, 'Philippines') !== false) {
+        $currencySymbol = '₱';
+    } elseif (stripos($country, 'Japan') !== false || 
+              stripos($country, 'China') !== false || 
+              stripos($country, 'Hong Kong') !== false || 
+              stripos($country, 'Taiwan') !== false || 
+              stripos($country, 'Korea') !== false) {
+        $currencySymbol = '¥';
+    } elseif (stripos($country, 'UK') !== false || 
+              stripos($country, 'United Kingdom') !== false || 
+              stripos($country, 'England') !== false) {
+        $currencySymbol = '£';
+    } elseif (stripos($country, 'Euro') !== false || 
+              stripos($country, 'France') !== false || 
+              stripos($country, 'Germany') !== false || 
+              stripos($country, 'Italy') !== false || 
+              stripos($country, 'Spain') !== false || 
+              stripos($country, 'Netherlands') !== false || 
+              stripos($country, 'Greece') !== false || 
+              stripos($country, 'Portugal') !== false || 
+              stripos($country, 'Austria') !== false || 
+              stripos($country, 'Belgium') !== false || 
+              stripos($country, 'Finland') !== false || 
+              stripos($country, 'Ireland') !== false) {
+        $currencySymbol = '€';
+    } elseif (stripos($country, 'Thailand') !== false) {
+        $currencySymbol = '฿'; // Thai Baht
+    }
+    
+    // Generate unique IDs for the hotels
+    $baseId = crc32($destination) % 1000 + 1000;
+    
+    // Get country-specific hotel names and features
+    $hotelNames = getCountrySpecificHotelNames($country, $mainLocation);
+    $hotelAmenities = getCountrySpecificAmenities($country);
+    $hotelImages = getCountrySpecificImages($country);
+    
+    // Create hotels for this destination
+    return [
+        // Luxury hotel
+        [
+            'id' => $baseId,
+            'name' => $hotelNames['luxury'],
+            'address' => 'Downtown ' . $destination,
+            'rating' => 4.7 + (rand(0, 20) / 100), // 4.7-4.9
+            'price_range' => str_repeat($currencySymbol, 4), // Luxury
+            'amenities' => $hotelAmenities['luxury'],
+            'image' => $hotelImages['luxury']
+        ],
+        // Mid-range hotel
+        [
+            'id' => $baseId + 1,
+            'name' => $hotelNames['midrange'],
+            'address' => $mainLocation . ' City Center, ' . $country,
+            'rating' => 4.2 + (rand(0, 30) / 100), // 4.2-4.5
+            'price_range' => str_repeat($currencySymbol, 3), // Mid-range
+            'amenities' => $hotelAmenities['midrange'],
+            'image' => $hotelImages['midrange']
+        ],
+        // Budget hotel
+        [
+            'id' => $baseId + 2,
+            'name' => $hotelNames['budget'],
+            'address' => $mainLocation . ' Airport Area, ' . $country,
+            'rating' => 3.5 + (rand(0, 40) / 100), // 3.5-3.9
+            'price_range' => str_repeat($currencySymbol, 2), // Budget
+            'amenities' => $hotelAmenities['budget'],
+            'image' => $hotelImages['budget']
+        ],
+        // Boutique hotel
+        [
+            'id' => $baseId + 3,
+            'name' => $hotelNames['boutique'],
+            'address' => 'Historic District, ' . $destination,
+            'rating' => 4.4 + (rand(0, 30) / 100), // 4.4-4.7
+            'price_range' => str_repeat($currencySymbol, 3), // Mid-range to luxury
+            'amenities' => $hotelAmenities['boutique'],
+            'image' => $hotelImages['boutique']
+        ],
+        // Resort (if applicable)
+        [
+            'id' => $baseId + 4,
+            'name' => $hotelNames['resort'],
+            'address' => 'Beachfront, ' . $destination,
+            'rating' => 4.6 + (rand(0, 30) / 100), // 4.6-4.9
+            'price_range' => str_repeat($currencySymbol, 4), // Luxury
+            'amenities' => $hotelAmenities['resort'],
+            'image' => $hotelImages['resort']
+        ]
+    ];
+}
+
+function getCountrySpecificHotelNames($country, $location) {
+    // Default hotel names
+    $names = [
+        'luxury' => $location . ' Grand Luxury Hotel',
+        'midrange' => $location . ' Plaza Hotel',
+        'budget' => $location . ' Budget Inn',
+        'boutique' => 'Boutique Hotel ' . $location,
+        'resort' => $location . ' Beach Resort & Spa'
+    ];
+    
+    // Country-specific hotel names
+    if (stripos($country, 'Japan') !== false) {
+        $names = [
+            'luxury' => 'The ' . $location . ' Tokyo Palace',
+            'midrange' => 'Hotel Sakura ' . $location,
+            'budget' => $location . ' Business Hotel',
+            'boutique' => 'Ryokan ' . $location,
+            'resort' => 'Onsen Resort ' . $location
+        ];
+    } elseif (stripos($country, 'Thailand') !== false) {
+        $names = [
+            'luxury' => $location . ' Grand Palace Resort',
+            'midrange' => $location . ' Orchid Hotel',
+            'budget' => 'Sawadee ' . $location . ' Inn',
+            'boutique' => $location . ' Boutique Retreat',
+            'resort' => $location . ' Beach & Spa Resort'
+        ];
+    } elseif (stripos($country, 'France') !== false) {
+        $names = [
+            'luxury' => 'Grand Hôtel de ' . $location,
+            'midrange' => 'Hôtel ' . $location . ' Paris',
+            'budget' => 'Auberge de ' . $location,
+            'boutique' => 'Le Petit ' . $location,
+            'resort' => 'Château ' . $location . ' & Spa'
+        ];
+    } elseif (stripos($country, 'Italy') !== false) {
+        $names = [
+            'luxury' => 'Grand Hotel ' . $location . ' Palace',
+            'midrange' => 'Hotel ' . $location . ' Roma',
+            'budget' => 'Pensione ' . $location,
+            'boutique' => 'Villa ' . $location,
+            'resort' => $location . ' Resort & Terme'
+        ];
+    } elseif (stripos($country, 'Spain') !== false) {
+        $names = [
+            'luxury' => $location . ' Gran Hotel',
+            'midrange' => 'Hotel ' . $location . ' Barcelona',
+            'budget' => 'Hostal ' . $location,
+            'boutique' => 'Casa ' . $location,
+            'resort' => $location . ' Beach Resort & Spa'
+        ];
+    } elseif (stripos($country, 'United Kingdom') !== false || stripos($country, 'UK') !== false) {
+        $names = [
+            'luxury' => 'The ' . $location . ' Luxury Collection',
+            'midrange' => $location . ' Park Hotel',
+            'budget' => $location . ' Lodge',
+            'boutique' => $location . ' Boutique Hotel',
+            'resort' => $location . ' Manor & Spa'
+        ];
+    } elseif (stripos($country, 'China') !== false) {
+        $names = [
+            'luxury' => $location . ' Imperial Palace Hotel',
+            'midrange' => $location . ' Garden Hotel',
+            'budget' => $location . ' City Inn',
+            'boutique' => $location . ' Courtyard Hotel',
+            'resort' => $location . ' Hot Springs Resort'
+        ];
+    } elseif (stripos($country, 'Philippines') !== false) {
+        $names = [
+            'luxury' => $location . ' Luxury Resort & Casino',
+            'midrange' => $location . ' City Hotel',
+            'budget' => $location . ' Pension House',
+            'boutique' => $location . ' Heritage Hotel',
+            'resort' => $location . ' Island Resort & Spa'
+        ];
+    }
+    
+    return $names;
+}
+
+function getCountrySpecificAmenities($country) {
+    // Default amenities
+    $amenities = [
+        'luxury' => 'Spa, Pool, Fine Dining, Concierge, Fitness Center, Business Center',
+        'midrange' => 'Restaurant, Free WiFi, Pool, Parking, Room Service',
+        'budget' => 'Free WiFi, Breakfast, Air Conditioning, 24-hour Front Desk',
+        'boutique' => 'Unique Design, Local Experience, Personalized Service, Gourmet Breakfast',
+        'resort' => 'Private Beach, Infinity Pool, Water Sports, Multiple Restaurants, Spa'
+    ];
+    
+    // Country-specific amenities
+    if (stripos($country, 'Japan') !== false) {
+        $amenities['luxury'] .= ', Traditional Tea Ceremony, Kaiseki Dining';
+        $amenities['midrange'] .= ', Japanese Bath, Tatami Rooms';
+        $amenities['boutique'] = 'Tatami Rooms, Onsen Bath, Traditional Japanese Breakfast, Zen Garden';
+        $amenities['resort'] = 'Hot Springs, Japanese Garden, Kaiseki Dining, Spa Treatments, Meditation Areas';
+    } elseif (stripos($country, 'Thailand') !== false) {
+        $amenities['luxury'] .= ', Thai Massage, Cooking Classes';
+        $amenities['midrange'] .= ', Thai Restaurant, Massage Services';
+        $amenities['boutique'] = 'Thai Decor, Massage Services, Local Tours, Cooking Classes';
+        $amenities['resort'] = 'Beachfront, Thai Massage, Multiple Pools, Water Sports, Thai Cooking Classes';
+    } elseif (stripos($country, 'Italy') !== false) {
+        $amenities['luxury'] .= ', Wine Cellar, Italian Marble Bathrooms';
+        $amenities['midrange'] .= ', Italian Restaurant, Wine Bar';
+        $amenities['boutique'] = 'Historic Building, Wine Tastings, Italian Design, Artisanal Breakfast';
+        $amenities['resort'] = 'Vineyard Views, Wine Tastings, Italian Cuisine, Spa Treatments, Pool';
+    }
+    
+    return $amenities;
+}
+
+function getCountrySpecificImages($country) {
+    // Default images
+    $images = [
+        'luxury' => APP_URL . '/assets/images/hotels/beach-resort.jpg',
+        'midrange' => APP_URL . '/assets/images/hotels/urban-luxury.jpg',
+        'budget' => APP_URL . '/assets/images/hotels/budget-inn.jpg',
+        'boutique' => APP_URL . '/assets/images/hotels/historic-hotel.jpg',
+        'resort' => APP_URL . '/assets/images/hotels/beach-resort.jpg'
+    ];
+    
+    // We could customize images by country if we had more image options
+    
+    return $images;
+}
+
 function saveSessionData() {
     if (defined('STORAGE_FILE')) {
         

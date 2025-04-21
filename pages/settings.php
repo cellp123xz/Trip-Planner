@@ -2,19 +2,15 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_functions.php';
 
-// Require login to access settings
 requireLogin();
 
-// Get user data
 $user = getUserById($_SESSION['user_id']);
 if (!$user) {
-    // If user not found, redirect to login
     logoutUser();
     header("Location: login.php");
     exit;
 }
 
-// Process form submission
 $success = false;
 $errors = [];
 
@@ -22,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = isset($_POST['action']) ? $_POST['action'] : '';
     
     if ($action === 'profile') {
-        // Update profile information
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         
@@ -37,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            // Update user in session storage
             foreach ($_SESSION['db']['users'] as &$dbUser) {
                 if ($dbUser['id'] === $_SESSION['user_id']) {
                     $dbUser['name'] = $name;
@@ -46,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            // Update session variables
             $_SESSION['user_name'] = $name;
             $_SESSION['user_email'] = $email;
             
@@ -58,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
         }
     } elseif ($action === 'password') {
-        // Change password
         $current_password = $_POST['current_password'] ?? '';
         $new_password = $_POST['new_password'] ?? '';
         $confirm_password = $_POST['confirm_password'] ?? '';
@@ -78,13 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            // Find user in session storage
             $userFound = false;
             foreach ($_SESSION['db']['users'] as &$dbUser) {
                 if ($dbUser['id'] === $_SESSION['user_id']) {
-                    // Verify current password
                     if (password_verify($current_password, $dbUser['password'])) {
-                        // Update password
                         $dbUser['password'] = password_hash($new_password, PASSWORD_DEFAULT);
                         $userFound = true;
                         
@@ -106,12 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'preferences') {
-        // Update user preferences
         $email_notifications = isset($_POST['email_notifications']) ? 1 : 0;
         $default_currency = $_POST['default_currency'] ?? 'USD';
         $default_language = $_POST['default_language'] ?? 'en';
         
-        // Store preferences in session
         $_SESSION['user_preferences'] = [
             'email_notifications' => $email_notifications,
             'default_currency' => $default_currency,
@@ -127,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get user preferences from session
 $preferences = $_SESSION['user_preferences'] ?? [
     'email_notifications' => 1,
     'default_currency' => 'PHP',
@@ -173,7 +159,7 @@ include '../includes/header.php';
         
         <div class="col-md-9">
             <div class="tab-content">
-                <!-- Profile Information -->
+
                 <div class="tab-pane fade show active" id="profile">
                     <div class="card shadow-sm">
                         <div class="card-header bg-white">
@@ -217,7 +203,7 @@ include '../includes/header.php';
                     </div>
                 </div>
                 
-                <!-- Change Password -->
+
                 <div class="tab-pane fade" id="password">
                     <div class="card shadow-sm">
                         <div class="card-header bg-white">
@@ -266,7 +252,7 @@ include '../includes/header.php';
                     </div>
                 </div>
                 
-                <!-- Preferences -->
+
                 <div class="tab-pane fade" id="preferences">
                     <div class="card shadow-sm">
                         <div class="card-header bg-white">
@@ -368,7 +354,7 @@ include '../includes/header.php';
                     </div>
                 </div>
                 
-                <!-- Privacy & Security -->
+
                 <div class="tab-pane fade" id="privacy">
                     <div class="card shadow-sm">
                         <div class="card-header bg-white">

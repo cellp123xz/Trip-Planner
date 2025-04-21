@@ -11,10 +11,8 @@ if (!$user) {
     exit;
 }
 
-// Get user's trips for the select dropdown
 $userTrips = getTripsByUserId($_SESSION['user_id']);
 
-// Process hotel booking
 $success = false;
 $error = '';
 
@@ -23,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $tripOption = isset($_POST['trip_option']) ? $_POST['trip_option'] : '';
     $tripId = isset($_POST['trip_id']) ? (int)$_POST['trip_id'] : 0;
     
-    // For new trip option
     $destination = isset($_POST['destination']) ? trim($_POST['destination']) : '';
     $startDate = isset($_POST['start_date']) ? trim($_POST['start_date']) : '';
     $endDate = isset($_POST['end_date']) ? trim($_POST['end_date']) : '';
@@ -31,22 +28,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($hotelId <= 0) {
         $error = 'Invalid hotel selection';
     } elseif ($tripOption === 'new') {
-        // Validate new trip data
         if (empty($destination) || empty($startDate) || empty($endDate)) {
             $error = 'Please fill in all required fields for the new trip';
         } elseif ($startDate > $endDate) {
             $error = 'End date must be after start date';
         } else {
-            // Create new trip with the hotel
             $tripId = createTrip(
                 $_SESSION['user_id'],
                 $destination,
                 $startDate,
                 $endDate,
-                '',  // activities
-                '',  // notes
+                '',
+                '',
                 $hotelId,
-                []   // tourist_sites
+                []
             );
             
             if ($tripId) {
@@ -63,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
         }
     } elseif ($tripOption === 'existing' && $tripId > 0) {
-        // Add hotel to existing trip
         $tripFound = false;
         foreach ($_SESSION['db']['trips'] as $key => $trip) {
             if ($trip['id'] == $tripId && $trip['user_id'] == $_SESSION['user_id']) {
@@ -268,9 +262,9 @@ $hotels = array_merge($hotels, $additionalHotels);
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
 $priceRange = isset($_GET['price']) ? $_GET['price'] : '';
+$rating = isset($_GET['rating']) ? $_GET['rating'] : '';
 
-// Pagination settings
-$itemsPerPage = 6; // Number of hotels per page
+$itemsPerPage = 6;
 $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($currentPage < 1) $currentPage = 1;
 
@@ -283,6 +277,39 @@ if (!empty($filter)) {
         }
     }
     $hotels = $filteredHotels;
+    
+    if (empty($hotels)) {
+        $destinationHotels = [
+            [
+                'id' => 100 + rand(1, 999),
+                'name' => 'Grand Hotel ' . $filter,
+                'address' => $filter . ', Popular Area',
+                'rating' => 4.5,
+                'price_range' => '$$$',
+                'amenities' => 'Pool, Spa, Restaurant, Free WiFi, Fitness Center',
+                'image' => APP_URL . '/assets/images/hotels/beach-resort.jpg'
+            ],
+            [
+                'id' => 100 + rand(1, 999),
+                'name' => $filter . ' Plaza Hotel',
+                'address' => 'Downtown ' . $filter,
+                'rating' => 4.2,
+                'price_range' => '$$',
+                'amenities' => 'Restaurant, Free WiFi, Business Center',
+                'image' => APP_URL . '/assets/images/hotels/urban-luxury.jpg'
+            ],
+            [
+                'id' => 100 + rand(1, 999),
+                'name' => 'Budget Inn ' . $filter,
+                'address' => $filter . ', Near Airport',
+                'rating' => 3.8,
+                'price_range' => '$',
+                'amenities' => 'Free WiFi, Free Parking, Breakfast',
+                'image' => APP_URL . '/assets/images/hotels/budget-inn.jpg'
+            ]
+        ];
+        $hotels = $destinationHotels;
+    }
 }
 
 if (!empty($priceRange)) {
@@ -293,6 +320,55 @@ if (!empty($priceRange)) {
         }
     }
     $hotels = $filteredHotels;
+    
+    // If no hotels found for this price range, add at least one
+    if (empty($hotels)) {
+        $destination = !empty($filter) ? $filter : 'Popular Destination';
+        $hotels = [
+            [
+                'id' => 100 + rand(1, 999),
+                'name' => ucfirst(str_replace('$', '', $priceRange)) . ' Category Hotel',
+                'address' => $destination,
+                'rating' => $priceRange === '$' ? 3.5 : ($priceRange === '$$' ? 4.0 : 4.5),
+                'price_range' => $priceRange,
+                'amenities' => $priceRange === '$' ? 'Free WiFi, Breakfast' : 
+                               ($priceRange === '$$' ? 'Free WiFi, Pool, Restaurant' : 
+                               'Luxury Spa, Fine Dining, Premium Services'),
+                'image' => $priceRange === '$' ? APP_URL . '/assets/images/hotels/budget-inn.jpg' : 
+                          ($priceRange === '$$' ? APP_URL . '/assets/images/hotels/urban-luxury.jpg' : 
+                          APP_URL . '/assets/images/hotels/beach-resort.jpg')
+            ]
+        ];
+    }
+}
+
+// Filter by rating if specified
+if (!empty($rating)) {
+    $ratingValue = (float)$rating;
+    $filteredHotels = [];
+    foreach ($hotels as $hotel) {
+        if ($hotel['rating'] >= $ratingValue) {
+            $filteredHotels[] = $hotel;
+        }
+    }
+    $hotels = $filteredHotels;
+    
+    // If no hotels found for this rating, add at least one
+    if (empty($hotels)) {
+        $destination = !empty($filter) ? $filter : 'Popular Destination';
+        $priceSymbol = !empty($priceRange) ? $priceRange : '$$$';
+        $hotels = [
+            [
+                'id' => 100 + rand(1, 999),
+                'name' => $ratingValue . '+ Star Hotel in ' . $destination,
+                'address' => $destination . ', Prime Location',
+                'rating' => $ratingValue + 0.1, // Just above the minimum rating
+                'price_range' => $priceSymbol,
+                'amenities' => 'Top-rated Service, Premium Amenities, Excellent Location',
+                'image' => APP_URL . '/assets/images/hotels/beach-resort.jpg'
+            ]
+        ];
+    }
 }
 
 include '../includes/header.php';
@@ -329,7 +405,13 @@ include '../includes/header.php';
                                         <i class="fas fa-map-marker-alt text-primary"></i>
                                     </span>
                                     <input type="text" class="form-control border-start-0" id="filter" name="filter" 
-                                           placeholder="Where are you going?" value="<?php echo htmlspecialchars($filter); ?>">
+                                           placeholder="Where are you going?" value="<?php echo htmlspecialchars($filter); ?>"
+                                           list="destination-list" autocomplete="off">
+                                    <datalist id="destination-list">
+                                        <?php foreach(getPopularDestinations() as $dest): ?>
+                                            <option value="<?php echo htmlspecialchars($dest); ?>">
+                                        <?php endforeach; ?>
+                                    </datalist>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -446,7 +528,8 @@ include '../includes/header.php';
                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                 <div>
                                     <div class="price-label small text-muted">Price per night</div>
-                                    <div class="price fw-bold fs-5"><?php echo $hotel['price_range']; ?></div>
+                                    <div class="price fw-bold fs-5">₱<?php echo number_format(getPriceRangeAmount($hotel['price_range'])); ?></div>
+                                    <div class="small text-muted"><?php echo $hotel['price_range']; ?> category</div>
                                 </div>
                                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#hotelModal<?php echo $hotel['id']; ?>">
                                     View Details
@@ -515,12 +598,12 @@ include '../includes/header.php';
                                                     <p class="mb-2">
                                                         <i class="fas fa-map-marker-alt me-2 text-primary"></i>
                                                         <?php echo htmlspecialchars($hotel['address']); ?>
-                                                        <a href="#" class="ms-2 small">Show on map</a>
                                                     </p>
                                                 </div>
                                                 <div class="text-end">
                                                     <div class="price-label text-muted">Price per night</div>
-                                                    <div class="price fs-3 fw-bold text-primary"><?php echo $hotel['price_range']; ?></div>
+                                                    <div class="price fs-3 fw-bold text-primary">₱<?php echo number_format(getPriceRangeAmount($hotel['price_range'])); ?></div>
+                                                    <div class="small text-muted"><?php echo $hotel['price_range']; ?> price category</div>
                                                 </div>
                                             </div>
                                             
@@ -618,19 +701,26 @@ include '../includes/header.php';
                                                         </div>
                                                     </div>
                                                     
+                                                    <?php 
+                                                        $nightlyRate = getPriceRangeAmount($hotel['price_range']);
+                                                        $nights = 7;
+                                                        $subtotal = $nightlyRate * $nights;
+                                                        $taxesAndFees = round($subtotal * 0.12); // 12% tax
+                                                        $total = $subtotal + $taxesAndFees;
+                                                    ?>
                                                     <div class="price-summary mb-4 p-3 bg-light rounded">
                                                         <div class="d-flex justify-content-between mb-2">
-                                                            <span>7 nights</span>
-                                                            <span><?php echo str_repeat(substr($hotel['price_range'], 0, 1), 7); ?></span>
+                                                            <span><?php echo $nights; ?> nights</span>
+                                                            <span>₱<?php echo number_format($subtotal); ?></span>
                                                         </div>
                                                         <div class="d-flex justify-content-between mb-2">
                                                             <span>Taxes and fees</span>
-                                                            <span><?php echo substr($hotel['price_range'], 0, 1); ?></span>
+                                                            <span>₱<?php echo number_format($taxesAndFees); ?></span>
                                                         </div>
                                                         <hr>
                                                         <div class="d-flex justify-content-between fw-bold">
                                                             <span>Total</span>
-                                                            <span class="text-primary"><?php echo str_repeat(substr($hotel['price_range'], 0, 1), 8); ?></span>
+                                                            <span class="text-primary">₱<?php echo number_format($total); ?></span>
                                                         </div>
                                                     </div>
                                                     

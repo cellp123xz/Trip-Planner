@@ -1,17 +1,14 @@
 <?php
 require_once '../includes/config.php';
 
-
 $success = false;
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message'] ?? '');
-    
     
     if (empty($name)) {
         $errors[] = "Name is required";
@@ -31,10 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Message is required";
     }
     
-    
     if (empty($errors)) {
-        
-
         $success = true;
         
         if (!isset($_SESSION['contact_messages'])) {
@@ -49,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'date' => date('Y-m-d H:i:s')
         ];
         
-
         $name = $email = $subject = $message = '';
     }
 }
