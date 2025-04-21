@@ -233,47 +233,77 @@ foreach ($additionalSites as $site) {
 include '../includes/header.php';
 ?>
 
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-0">Explore Tourist Sites</h1>
-            <p class="text-muted">Discover amazing places to visit on your trip</p>
+<div class="booking-search-container">
+    <div class="container-fluid py-4 bg-primary text-white">
+        <div class="row">
+            <div class="col-12">
+                <h3 class="mb-3">Discover amazing attractions and activities</h3>
+                <p>From iconic landmarks to hidden gems around the world</p>
+            </div>
         </div>
-        <div class="col-md-4 text-md-end">
-            <a href="dashboard.php" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-            </a>
+        <div class="row">
+            <div class="col-12">
+                <form action="" method="GET" class="booking-search-form bg-white p-3 rounded shadow">
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-search text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="filter" name="filter" 
+                                       placeholder="What are you looking to do?" value="<?php echo htmlspecialchars($filter); ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="location" name="location" 
+                                       placeholder="Where?" value="<?php echo htmlspecialchars($_GET['location'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-tag text-primary"></i>
+                                </span>
+                                <select class="form-select border-start-0" id="category" name="category">
+                                    <option value="">All Categories</option>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $category === $cat ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($cat); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid py-3">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="dashboard.php" class="btn btn-link text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+                <div class="text-muted small">
+                    <?php echo count($sites); ?> attractions found
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Search and Filter -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form action="" method="GET" class="row g-3">
-                <div class="col-md-6">
-                    <label for="filter" class="form-label">Search Sites</label>
-                    <input type="text" class="form-control" id="filter" name="filter" 
-                           placeholder="Site name, description, or location" value="<?php echo htmlspecialchars($filter); ?>">
-                </div>
-                <div class="col-md-4">
-                    <label for="category" class="form-label">Category</label>
-                    <select class="form-select" id="category" name="category">
-                        <option value="">All Categories</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $category === $cat ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($cat); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search me-2"></i>Filter
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="container-fluid">
 
     <!-- Tourist Site Listings -->
     <div class="row g-4">
@@ -296,80 +326,242 @@ include '../includes/header.php';
             
             foreach ($pageSites as $site): 
             ?>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 shadow-sm site-card">
-                        <div class="card-img-top site-image" style="background-color: #198754; color: white; display: flex; align-items: center; justify-content: center; height: 200px;">
-                            <h3><?php echo htmlspecialchars($site['name']); ?></h3>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm site-card border-0 overflow-hidden">
+                        <div class="position-relative">
+                            <img src="<?php echo $site['image'] ?? APP_URL . '/assets/images/sites/default.jpg'; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($site['name']); ?>" style="height: 200px; object-fit: cover;">
+                            <?php if (stripos($site['category'], 'UNESCO') !== false): ?>
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-danger py-2 px-3">UNESCO Site</span>
+                            </div>
+                            <?php endif; ?>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title mb-0"><?php echo htmlspecialchars($site['name']); ?></h5>
                                 <span class="badge bg-info text-dark"><?php echo htmlspecialchars($site['category']); ?></span>
                             </div>
-                            <p class="card-text small text-muted mb-2">
-                                <i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($site['address']); ?>
+                            <p class="card-text small text-muted mb-1">
+                                <i class="fas fa-map-marker-alt me-1 text-primary"></i><?php echo htmlspecialchars($site['address']); ?>
                             </p>
-                            <p class="card-text">
-                                <?php echo htmlspecialchars($site['description']); ?>
-                            </p>
-                        </div>
-                        <div class="card-footer bg-white border-top-0">
-                            <button class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#siteModal<?php echo $site['id']; ?>">
-                                <i class="fas fa-info-circle me-1"></i>View Details
-                            </button>
+                            <div class="rating mb-2">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star-half-alt text-warning"></i>
+                                <span class="small text-muted ms-1">(<?php echo rand(50, 300); ?> reviews)</span>
+                            </div>
+                            <p class="card-text small text-muted flex-grow-1"><?php echo htmlspecialchars(substr($site['description'], 0, 100)); ?>...</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div class="activity-info">
+                                    <span class="badge bg-light text-dark me-1"><i class="far fa-clock me-1"></i>2-3 hours</span>
+                                </div>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#siteModal<?php echo $site['id']; ?>">
+                                    View Details
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tourist Site Details Modal -->
                 <div class="modal fade" id="siteModal<?php echo $site['id']; ?>" tabindex="-1" aria-labelledby="siteModalLabel<?php echo $site['id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-xl">
                         <div class="modal-content">
-                            <div class="modal-header">
+                            <div class="modal-header bg-primary text-white">
                                 <h5 class="modal-title" id="siteModalLabel<?php echo $site['id']; ?>"><?php echo htmlspecialchars($site['name']); ?></h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="rounded mb-3" style="background-color: #198754; color: white; display: flex; align-items: center; justify-content: center; height: 200px;">
-                                            <h3><?php echo htmlspecialchars($site['name']); ?></h3>
+                            <div class="modal-body p-0">
+                                <!-- Site Gallery -->
+                                <div class="site-gallery bg-light p-3">
+                                    <div class="row g-2">
+                                        <div class="col-md-8">
+                                            <div class="main-image rounded overflow-hidden" style="height: 350px;">
+                                                <img src="<?php echo $site['image'] ?? APP_URL . '/assets/images/sites/default.jpg'; ?>" class="w-100 h-100" style="object-fit: cover;" alt="<?php echo htmlspecialchars($site['name']); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row g-2">
+                                                <div class="col-6 col-md-12">
+                                                    <div class="thumbnail rounded overflow-hidden" style="height: 170px;">
+                                                        <img src="<?php echo APP_URL . '/assets/images/sites/statue-of-liberty.jpg'; ?>" class="w-100 h-100" style="object-fit: cover;" alt="Thumbnail">
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 col-md-12">
+                                                    <div class="thumbnail rounded overflow-hidden" style="height: 170px;">
+                                                        <img src="<?php echo APP_URL . '/assets/images/sites/great-wall.jpg'; ?>" class="w-100 h-100" style="object-fit: cover;" alt="Thumbnail">
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <h5>Site Information</h5>
-                                        <p><i class="fas fa-map-marker-alt me-2"></i><?php echo htmlspecialchars($site['address']); ?></p>
-                                        <p><i class="fas fa-tag me-2"></i>Category: <?php echo htmlspecialchars($site['category']); ?></p>
-                                    </div>
                                 </div>
-                                <div class="mt-3">
-                                    <h5>About this Site</h5>
-                                    <p><?php echo htmlspecialchars($site['description']); ?></p>
-                                    <p>This is a sample extended description for <?php echo htmlspecialchars($site['name']); ?>. In a real application, this would contain detailed information about the site, its history, cultural significance, and visitor information.</p>
-                                </div>
-                                <div class="mt-3">
-                                    <h5>Visitor Information</h5>
+                                
+                                <div class="container py-4">
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item"><i class="fas fa-clock me-2"></i>Opening Hours: 9:00 AM - 5:00 PM</li>
-                                                <li class="list-group-item"><i class="fas fa-ticket-alt me-2"></i>Admission: $10-25 (varies)</li>
-                                                <li class="list-group-item"><i class="fas fa-calendar-alt me-2"></i>Best Time to Visit: Spring/Fall</li>
-                                            </ul>
+                                        <!-- Site Details -->
+                                        <div class="col-md-8">
+                                            <div class="site-header d-flex justify-content-between align-items-start mb-4">
+                                                <div>
+                                                    <h3 class="mb-1"><?php echo htmlspecialchars($site['name']); ?></h3>
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <div class="me-2">
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                                        </div>
+                                                        <span class="badge bg-primary rounded-pill px-2 py-1 me-2">4.5</span>
+                                                        <span class="text-muted">(<?php echo rand(50, 500); ?> reviews)</span>
+                                                    </div>
+                                                    <p class="mb-2">
+                                                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                                                        <?php echo htmlspecialchars($site['address']); ?>
+                                                        <a href="#" class="ms-2 small">Show on map</a>
+                                                    </p>
+                                                    <span class="badge bg-info text-dark"><?php echo htmlspecialchars($site['category']); ?></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <h5 class="mb-3">About this attraction</h5>
+                                                <p><?php echo htmlspecialchars($site['description']); ?></p>
+                                                <p>This iconic destination attracts visitors from around the world. Plan your visit in advance to make the most of your experience.</p>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <h5 class="mb-3">Visitor information</h5>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card border-0 bg-light">
+                                                            <div class="card-body">
+                                                                <h6 class="card-title"><i class="far fa-clock text-primary me-2"></i>Opening hours</h6>
+                                                                <p class="card-text mb-0">Monday - Friday: 9:00 AM - 5:00 PM</p>
+                                                                <p class="card-text mb-0">Saturday - Sunday: 10:00 AM - 6:00 PM</p>
+                                                                <p class="card-text small text-muted">Last entry 1 hour before closing</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card border-0 bg-light">
+                                                            <div class="card-body">
+                                                                <h6 class="card-title"><i class="fas fa-ticket-alt text-primary me-2"></i>Admission</h6>
+                                                                <p class="card-text mb-0">Adults: $25</p>
+                                                                <p class="card-text mb-0">Children (6-12): $15</p>
+                                                                <p class="card-text small text-muted">Children under 6: Free</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card border-0 bg-light">
+                                                            <div class="card-body">
+                                                                <h6 class="card-title"><i class="fas fa-bus text-primary me-2"></i>Transportation</h6>
+                                                                <p class="card-text mb-0">Public transit available</p>
+                                                                <p class="card-text mb-0">Parking available on-site</p>
+                                                                <p class="card-text small text-muted">10-minute walk from city center</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card border-0 bg-light">
+                                                            <div class="card-body">
+                                                                <h6 class="card-title"><i class="fas fa-info-circle text-primary me-2"></i>Facilities</h6>
+                                                                <p class="card-text mb-0"><i class="fas fa-wheelchair me-2"></i>Partially accessible</p>
+                                                                <p class="card-text mb-0"><i class="fas fa-utensils me-2"></i>Restaurant on-site</p>
+                                                                <p class="card-text mb-0"><i class="fas fa-restroom me-2"></i>Public restrooms</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <h5 class="mb-3">Visitor tips</h5>
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-lightbulb me-2"></i>
+                                                    <strong>Pro tip:</strong> Visit early in the morning or late afternoon to avoid crowds. The recommended visit duration is 2-3 hours.
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item"><i class="fas fa-bus me-2"></i>Transportation: Public transit available</li>
-                                                <li class="list-group-item"><i class="fas fa-clock me-2"></i>Recommended Visit Duration: 2-3 hours</li>
-                                                <li class="list-group-item"><i class="fas fa-wheelchair me-2"></i>Accessibility: Partially accessible</li>
-                                            </ul>
+                                        
+                                        <!-- Booking Box -->
+                                        <div class="col-md-4">
+                                            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                                                <div class="card-header bg-primary text-white py-3">
+                                                    <h5 class="mb-0">Add to your trip</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="mb-4">
+                                                        <h6 class="mb-3">Why visit <?php echo htmlspecialchars($site['name']); ?>?</h6>
+                                                        <ul class="list-unstyled">
+                                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Top-rated attraction</li>
+                                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Cultural significance</li>
+                                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Stunning photo opportunities</li>
+                                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Unique experience</li>
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <div class="mb-4">
+                                                        <h6 class="mb-3">Available experiences</h6>
+                                                        <div class="list-group">
+                                                            <div class="list-group-item border-0 bg-light mb-2 rounded">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div>
+                                                                        <h6 class="mb-1">Guided Tour</h6>
+                                                                        <p class="mb-0 small">2 hours, English guide</p>
+                                                                    </div>
+                                                                    <span class="badge bg-primary">$35</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="list-group-item border-0 bg-light mb-2 rounded">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div>
+                                                                        <h6 class="mb-1">Skip-the-line Ticket</h6>
+                                                                        <p class="mb-0 small">Priority access</p>
+                                                                    </div>
+                                                                    <span class="badge bg-primary">$45</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="booking-options">
+                                                        <?php if (!empty($userTrips)): ?>
+                                                        <div class="dropdown mb-2 w-100">
+                                                            <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" id="addToTripDropdown<?php echo $site['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                Add to Existing Trip
+                                                            </button>
+                                                            <ul class="dropdown-menu w-100" aria-labelledby="addToTripDropdown<?php echo $site['id']; ?>">
+                                                                <?php foreach ($userTrips as $trip): ?>
+                                                                    <li>
+                                                                        <a class="dropdown-item" href="edit_trip.php?id=<?php echo $trip['id']; ?>&add_site=<?php echo $site['id']; ?>">
+                                                                            <?php echo htmlspecialchars($trip['destination']); ?> (<?php echo date('M d, Y', strtotime($trip['start_date'])); ?>)
+                                                                        </a>
+                                                                    </li>
+                                                                <?php endforeach; ?>
+                                                            </ul>
+                                                        </div>
+                                                        <?php endif; ?>
+                                                        <a href="create_trip.php?site_id=<?php echo $site['id']; ?>" class="btn btn-primary w-100">
+                                                            <i class="fas fa-calendar-plus me-2"></i>Create New Trip
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer bg-white text-center">
+                                                    <small class="text-muted">Recommended visit: 2-3 hours</small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary">Add to Trip</button>
                             </div>
                         </div>
                     </div>
@@ -421,16 +613,61 @@ include '../includes/header.php';
 </div>
 
 <style>
+/* Booking.com inspired styles */
+.booking-search-container {
+    margin-top: -1.5rem;
+}
+
+.booking-search-form {
+    margin-top: 1rem;
+    border-radius: 8px;
+}
+
 .site-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 8px;
 }
+
 .site-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
 }
+
 .site-card .card-img-top {
     height: 200px;
     object-fit: cover;
+}
+
+/* Custom styling for form elements */
+.input-group-text {
+    color: #0071c2;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0071c2;
+    box-shadow: 0 0 0 0.25rem rgba(0, 113, 194, 0.25);
+}
+
+/* Pagination styling */
+.pagination .page-link {
+    color: #0071c2;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0071c2;
+    border-color: #0071c2;
+}
+
+/* Site gallery styling */
+.site-gallery .thumbnail:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+/* Activity info styling */
+.activity-info .badge {
+    font-size: 0.75rem;
+    font-weight: normal;
 }
 </style>
 

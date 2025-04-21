@@ -187,7 +187,7 @@ function getTripsByUserId($userId) {
     return $trips;
 }
 
-function createTrip($userId, $destination, $startDate, $endDate, $activities = '', $notes = '') {
+function createTrip($userId, $destination, $startDate, $endDate, $activities = '', $notes = '', $hotel_id = null, $tourist_sites = []) {
     $tripId = count($_SESSION['db']['trips']) + 1;
     
     $trip = [
@@ -198,6 +198,8 @@ function createTrip($userId, $destination, $startDate, $endDate, $activities = '
         'end_date' => $endDate,
         'activities' => $activities,
         'notes' => $notes,
+        'hotel_id' => $hotel_id,
+        'tourist_sites' => $tourist_sites,
         'status' => 'planned',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
@@ -212,7 +214,156 @@ function createTrip($userId, $destination, $startDate, $endDate, $activities = '
 }
 
 function getAllHotels() {
-    return $_SESSION['db']['hotels'];
+    // Define additional hotels that should be available throughout the application
+    $additionalHotels = [
+        [
+            'id' => 3,
+            'name' => 'Shangri-La Boracay Resort & Spa',
+            'address' => 'Barangay Yapak, Boracay Island, Malay, Aklan, Philippines',
+            'rating' => 4.9,
+            'price_range' => '₱₱₱₱',
+            'amenities' => 'Private Beach, Infinity Pool, Spa, Multiple Restaurants, Water Sports',
+            'image' => APP_URL . '/assets/images/hotels/beach-resort.jpg'
+        ],
+        [
+            'id' => 4,
+            'name' => 'El Nido Resorts Lagen Island',
+            'address' => 'Lagen Island, El Nido, Palawan, Philippines',
+            'rating' => 4.8,
+            'price_range' => '₱₱₱',
+            'amenities' => 'Eco-Sanctuary, Lagoon, Diving, Island Hopping, Spa',
+            'image' => APP_URL . '/assets/images/hotels/mountain-lodge.jpg'
+        ],
+        [
+            'id' => 5,
+            'name' => 'The Farm at San Benito',
+            'address' => 'Barangay Tipakan, Lipa City, Batangas, Philippines',
+            'rating' => 4.7,
+            'price_range' => '₱₱₱₱',
+            'amenities' => 'Wellness Retreat, Vegan Restaurant, Holistic Spa, Yoga, Meditation',
+            'image' => APP_URL . '/assets/images/hotels/urban-luxury.jpg'
+        ],
+        [
+            'id' => 6,
+            'name' => 'Henann Resort Alona Beach',
+            'address' => 'Alona Beach, Panglao Island, Bohol, Philippines',
+            'rating' => 4.6,
+            'price_range' => '₱₱₱',
+            'amenities' => 'Beachfront, Multiple Pools, Restaurants, Spa, Water Activities',
+            'image' => APP_URL . '/assets/images/hotels/historic-hotel.jpg'
+        ],
+        [
+            'id' => 7,
+            'name' => 'Siargao Bleu Resort & Spa',
+            'address' => 'Tourism Road, General Luna, Siargao Island, Philippines',
+            'rating' => 4.5,
+            'price_range' => '₱₱',
+            'amenities' => 'Surfing Lessons, Pool, Restaurant, Airport Transfers, WiFi',
+            'image' => APP_URL . '/assets/images/hotels/budget-inn.jpg'
+        ],
+        [
+            'id' => 8,
+            'name' => 'Marco Polo Davao',
+            'address' => 'CM Recto Street, Davao City, Philippines',
+            'rating' => 4.7,
+            'price_range' => '₱₱₱',
+            'amenities' => 'City Views, Pool, Multiple Restaurants, Spa, Business Center',
+            'image' => APP_URL . '/assets/images/hotels/desert-resort.jpg'
+        ],
+        [
+            'id' => 9,
+            'name' => 'Seda Centrio',
+            'address' => 'Cagayan de Oro City, Philippines',
+            'rating' => 4.6,
+            'price_range' => '₱₱',
+            'amenities' => 'Mall Access, Business Center, Restaurant, Gym, Free WiFi',
+            'image' => APP_URL . '/assets/images/hotels/urban-luxury.jpg'
+        ],
+        [
+            'id' => 10,
+            'name' => 'Marina Bay Sands',
+            'address' => '10 Bayfront Avenue, Singapore',
+            'rating' => 4.8,
+            'price_range' => '$$$$$',
+            'amenities' => 'Infinity Pool, Casino, Luxury Shopping, SkyPark Observation Deck',
+            'image' => APP_URL . '/assets/images/hotels/historic-hotel.jpg'
+        ],
+        [
+            'id' => 11,
+            'name' => 'Burj Al Arab Jumeirah',
+            'address' => 'Jumeirah Beach Road, Dubai, UAE',
+            'rating' => 4.9,
+            'price_range' => '$$$$$',
+            'amenities' => 'Private Beach, Helipad, Underwater Restaurant, Butler Service',
+            'image' => APP_URL . '/assets/images/hotels/budget-inn.jpg'
+        ],
+        [
+            'id' => 12,
+            'name' => 'The Ritz Paris',
+            'address' => '15 Place Vendôme, 75001 Paris, France',
+            'rating' => 4.9,
+            'price_range' => '$$$$$',
+            'amenities' => 'Michelin Star Restaurant, Luxury Spa, Historic Suites, Bar Hemingway',
+            'image' => APP_URL . '/assets/images/hotels/desert-resort.jpg'
+        ],
+        [
+            'id' => 13,
+            'name' => 'Aman Tokyo',
+            'address' => 'The Otemachi Tower, 1-5-6 Otemachi, Tokyo, Japan',
+            'rating' => 4.8,
+            'price_range' => '$$$$',
+            'amenities' => 'Urban Sanctuary, Traditional Onsen, Panoramic Views, Spa',
+            'image' => APP_URL . '/assets/images/hotels/urban-luxury.jpg'
+        ],
+        [
+            'id' => 14,
+            'name' => 'Jade Mountain Resort',
+            'address' => 'Soufriere, St. Lucia, Caribbean',
+            'rating' => 4.9,
+            'price_range' => '$$$$$',
+            'amenities' => 'Open-air Suites, Private Infinity Pools, Ocean Views, Organic Cuisine',
+            'image' => APP_URL . '/assets/images/hotels/beach-resort.jpg'
+        ],
+        [
+            'id' => 15,
+            'name' => 'Four Seasons Resort Bora Bora',
+            'address' => 'Motu Tehotu, Bora Bora, French Polynesia',
+            'rating' => 4.9,
+            'price_range' => '$$$$$',
+            'amenities' => 'Overwater Bungalows, Lagoon Views, Snorkeling, Spa, Fine Dining',
+            'image' => APP_URL . '/assets/images/hotels/mountain-lodge.jpg'
+        ],
+        [
+            'id' => 16,
+            'name' => 'The Savoy',
+            'address' => 'Strand, London, United Kingdom',
+            'rating' => 4.8,
+            'price_range' => '$$$$',
+            'amenities' => 'Historic Luxury, Thames Views, Gordon Ramsay Restaurant, Afternoon Tea',
+            'image' => APP_URL . '/assets/images/hotels/historic-hotel.jpg'
+        ],
+        [
+            'id' => 17,
+            'name' => 'Atlantis The Palm',
+            'address' => 'Crescent Road, The Palm, Dubai, UAE',
+            'rating' => 4.7,
+            'price_range' => '$$$$',
+            'amenities' => 'Aquaventure Waterpark, Lost Chambers Aquarium, Underwater Suites',
+            'image' => APP_URL . '/assets/images/hotels/budget-inn.jpg'
+        ],
+        [
+            'id' => 18,
+            'name' => 'Mandarin Oriental Hong Kong',
+            'address' => '5 Connaught Road, Central, Hong Kong',
+            'rating' => 4.8,
+            'price_range' => '$$$$$',
+            'amenities' => 'Rolls-Royce Fleet, Helicopter, Spa, Michelin-Starred Dining, Harbor Views',
+            'image' => APP_URL . '/assets/images/hotels/historic-hotel.jpg'
+        ]
+    ];
+    
+    // Merge with session hotels and return
+    return array_merge($_SESSION['db']['hotels'], $additionalHotels);
 }
 
 function getAllTouristSites() {

@@ -46,14 +46,38 @@ $touristSites = $_SESSION['db']['tourist_sites'];
 $recommendedHotels = [];
 $recommendedSites = [];
 
+// Get selected hotel if any
+$selectedHotel = null;
+if (!empty($trip['hotel_id'])) {
+    foreach ($hotels as $hotel) {
+        if ($hotel['id'] == $trip['hotel_id']) {
+            $selectedHotel = $hotel;
+            break;
+        }
+    }
+}
+
+// Get selected tourist sites if any
+$selectedSites = [];
+if (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites'])) {
+    foreach ($touristSites as $site) {
+        if (in_array($site['id'], $trip['tourist_sites'])) {
+            $selectedSites[] = $site;
+        }
+    }
+}
+
+// Get additional recommendations based on destination
 foreach ($hotels as $hotel) {
-    if (stripos($hotel['address'], $trip['destination']) !== false) {
+    if (stripos($hotel['address'], $trip['destination']) !== false && 
+        (!$selectedHotel || $hotel['id'] != $selectedHotel['id'])) {
         $recommendedHotels[] = $hotel;
     }
 }
 
 foreach ($touristSites as $site) {
-    if (stripos($site['address'], $trip['destination']) !== false) {
+    if (stripos($site['address'], $trip['destination']) !== false && 
+        !in_array($site, $selectedSites)) {
         $recommendedSites[] = $site;
     }
 }
@@ -173,9 +197,35 @@ include '../includes/header.php';
         <!-- Recommendations -->
         <div class="col-lg-4">
             <!-- Hotels -->
+            <!-- Selected Hotel -->
+            <?php if ($selectedHotel): ?>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Your Hotel</h5>
+                    <span class="badge bg-primary">Selected</span>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item border-0">
+                            <h6 class="mb-1"><?php echo htmlspecialchars($selectedHotel['name']); ?></h6>
+                            <p class="mb-1 small"><?php echo htmlspecialchars($selectedHotel['address']); ?></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-success"><?php echo $selectedHotel['rating']; ?> ★</span>
+                                    <span class="badge bg-secondary"><?php echo $selectedHotel['price_range']; ?></span>
+                                </div>
+                                <a href="explore_hotels.php" class="btn btn-sm btn-outline-primary">Change</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Recommended Hotels -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">Recommended Hotels</h5>
+                    <h5 class="mb-0"><?php echo $selectedHotel ? 'Other Recommended Hotels' : 'Recommended Hotels'; ?></h5>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($recommendedHotels)): ?>
@@ -189,21 +239,46 @@ include '../includes/header.php';
                                             <span class="badge bg-success"><?php echo $hotel['rating']; ?> ★</span>
                                             <span class="badge bg-secondary"><?php echo $hotel['price_range']; ?></span>
                                         </div>
-                                        <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
+                                        <a href="edit_trip.php?id=<?php echo $trip['id']; ?>" class="btn btn-sm btn-outline-primary">Select</a>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
-                        <p class="text-muted">No hotel recommendations available for this destination.</p>
+                        <p class="text-muted">No additional hotel recommendations available for this destination.</p>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <!-- Tourist Sites -->
+            <!-- Selected Tourist Sites -->
+            <?php if (!empty($selectedSites)): ?>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Your Itinerary</h5>
+                    <span class="badge bg-primary"><?php echo count($selectedSites); ?> Sites</span>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <?php foreach ($selectedSites as $site): ?>
+                            <div class="list-group-item border-0 pb-3">
+                                <h6 class="mb-1"><?php echo htmlspecialchars($site['name']); ?></h6>
+                                <p class="mb-1 small text-muted"><?php echo htmlspecialchars($site['description']); ?></p>
+                                <p class="mb-1 small"><?php echo htmlspecialchars($site['address']); ?></p>
+                                <span class="badge bg-info text-dark"><?php echo $site['category']; ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="mt-3">
+                        <a href="edit_trip.php?id=<?php echo $trip['id']; ?>" class="btn btn-sm btn-outline-primary w-100">Edit Itinerary</a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Recommended Tourist Sites -->
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">Places to Visit</h5>
+                    <h5 class="mb-0"><?php echo !empty($selectedSites) ? 'Other Places to Visit' : 'Places to Visit'; ?></h5>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($recommendedSites)): ?>
@@ -213,12 +288,15 @@ include '../includes/header.php';
                                     <h6 class="mb-1"><?php echo htmlspecialchars($site['name']); ?></h6>
                                     <p class="mb-1 small text-muted"><?php echo htmlspecialchars($site['description']); ?></p>
                                     <p class="mb-1 small"><?php echo htmlspecialchars($site['address']); ?></p>
-                                    <span class="badge bg-info text-dark"><?php echo $site['category']; ?></span>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-info text-dark"><?php echo $site['category']; ?></span>
+                                        <a href="edit_trip.php?id=<?php echo $trip['id']; ?>" class="btn btn-sm btn-outline-primary">Add</a>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
-                        <p class="text-muted">No site recommendations available for this destination.</p>
+                        <p class="text-muted">No additional site recommendations available for this destination.</p>
                     <?php endif; ?>
                 </div>
             </div>

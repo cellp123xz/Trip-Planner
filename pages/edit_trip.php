@@ -28,6 +28,31 @@ foreach ($_SESSION['db']['trips'] as $key => $t) {
     }
 }
 
+// Get all hotels and tourist sites for selection
+$hotels = $_SESSION['db']['hotels'];
+$tourist_sites = $_SESSION['db']['tourist_sites'];
+
+// Get selected hotel if any
+$selectedHotel = null;
+if (!empty($trip['hotel_id'])) {
+    foreach ($hotels as $hotel) {
+        if ($hotel['id'] == $trip['hotel_id']) {
+            $selectedHotel = $hotel;
+            break;
+        }
+    }
+}
+
+// Get selected tourist sites if any
+$selectedSites = [];
+if (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites'])) {
+    foreach ($tourist_sites as $site) {
+        if (in_array($site['id'], $trip['tourist_sites'])) {
+            $selectedSites[] = $site;
+        }
+    }
+}
+
 // If trip not found or doesn't belong to the user
 if (!$trip) {
     $_SESSION['alert'] = [
@@ -50,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $activities = trim($_POST['activities'] ?? '');
     $notes = trim($_POST['notes'] ?? '');
     $status = trim($_POST['status'] ?? 'planned');
+    $hotel_id = !empty($_POST['hotel_id']) ? (int)$_POST['hotel_id'] : null;
+    $tourist_sites_ids = $_POST['tourist_sites'] ?? [];
 
     if (empty($destination)) {
         $errors[] = "Destination is required";
@@ -76,6 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'activities' => $activities,
                 'notes' => $notes,
                 'status' => $status,
+                'hotel_id' => $hotel_id,
+                'tourist_sites' => $tourist_sites_ids,
                 'created_at' => $trip['created_at'],
                 'updated_at' => date('Y-m-d H:i:s')
             ];
@@ -162,6 +191,37 @@ include '../includes/header.php';
                                     placeholder="List your planned activities..."><?php echo htmlspecialchars($trip['activities']); ?></textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="hotel_id" class="form-label">Select a Hotel</label>
+                            <select class="form-select" id="hotel_id" name="hotel_id">
+                                <option value="">-- Select a Hotel --</option>
+                                <?php foreach ($hotels as $hotel): ?>
+                                    <option value="<?php echo $hotel['id']; ?>" <?php echo (isset($trip['hotel_id']) && $trip['hotel_id'] == $hotel['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($hotel['name']); ?> - <?php echo htmlspecialchars($hotel['address']); ?> (<?php echo $hotel['price_range']; ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text">Choose a hotel for your stay</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Select Tourist Sites to Visit</label>
+                            <div class="row g-3 mb-3" style="max-height: 300px; overflow-y: auto;">
+                                <?php foreach ($tourist_sites as $site): ?>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tourist_sites[]" 
+                                               value="<?php echo $site['id']; ?>" id="site_<?php echo $site['id']; ?>"
+                                               <?php echo (!empty($trip['tourist_sites']) && is_array($trip['tourist_sites']) && in_array($site['id'], $trip['tourist_sites'])) ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="site_<?php echo $site['id']; ?>">
+                                            <?php echo htmlspecialchars($site['name']); ?> - <?php echo htmlspecialchars($site['category']); ?>
+                                        </label>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        
                         <div class="mb-3">
                             <label for="notes" class="form-label">Notes</label>
                             <textarea class="form-control" id="notes" name="notes" rows="4"
